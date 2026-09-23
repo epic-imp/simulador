@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPIC — Simulador de Importação</title>
+<meta name="description" content="Simulador de custo de importação, formação de preço e demonstrativo comercial.">
+<link rel="icon" id="favicon" href="img/logo-epic.png">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="top no-print">
+  <div class="top-brand">
+    <img id="brandLogo" src="img/logo-epic-branca.png" alt="EPIC">
+    <div class="bar"></div>
+    <h1>Simulador de importação</h1>
+  </div>
+  <div class="switch" id="modeSwitch" role="group" aria-label="Modalidade">
+    <button data-mode="direta" class="on">Importação direta</button>
+    <button data-mode="co">Conta e ordem</button>
+  </div>
+</header>
+<nav class="tabs no-print" id="tabs"></nav>
+<main class="sheet" id="sheet">
+  <div id="boot" style="max-width:640px;margin:40px auto;padding:20px;border:1px solid #d6dde4;
+       font-family:system-ui,sans-serif;line-height:1.5">
+    <strong style="display:block;font-size:16px;margin-bottom:8px">Carregando o simulador…</strong>
+    <p style="margin:0 0 10px;color:#5a6a7a">Se esta mensagem não sumir em alguns segundos, os arquivos
+    de apoio não foram encontrados. Este <code>index.html</code> é apenas a casca da página: ele precisa
+    das pastas <code>css/</code>, <code>js/</code> e <code>img/</code> no mesmo diretório.</p>
+    <p style="margin:0;color:#5a6a7a">Para usar o simulador num arquivo só, abra
+    <code>dist/index.html</code>, que já vem com tudo embutido.</p>
+  </div>
+</main>
+<footer class="kpis no-print" id="kpis"></footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>

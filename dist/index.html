@@ -1,0 +1,1963 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EPIC — Simulador de Importação</title>
+<meta name="description" content="Simulador de custo de importação, formação de preço e demonstrativo comercial.">
+<link rel="icon" id="favicon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
+<style>
+:root{--ink:#16202b;--ink2:#5a6a7a;--rule:#d6dde4;--bg:#eef1f5;--pa:#1f4e79;--am:#fdf3d3;--amb:#d9b04a;--pos:#0f6b3f;--neg:#a4262c;}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--bg);
+  font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums;-webkit-text-size-adjust:100%;}
+button{font:inherit;cursor:pointer;}
+input,select{font:inherit;color:inherit;}
+a{color:var(--pa);}
+
+.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--pa);color:#fff;}
+.top-brand{display:flex;align-items:center;gap:14px;}
+.top-brand img{height:26px;width:auto;display:block;}
+.top-brand .bar{width:1px;height:26px;background:rgba(255,255,255,.3);}
+.top-brand h1{margin:0;font-size:16px;font-weight:500;letter-spacing:-.01em;}
+.switch{display:inline-flex;background:rgba(255,255,255,.14);border-radius:3px;padding:2px;}
+.switch button{border:0;background:none;color:#dbe7f2;padding:6px 12px;border-radius:2px;font-size:12.5px;}
+.switch button.on{background:#fff;color:var(--pa);font-weight:600;}
+
+.tabs{display:flex;overflow-x:auto;background:#fff;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:5;-webkit-overflow-scrolling:touch;}
+.tabs button{border:0;background:none;padding:11px 15px;font-size:13px;color:var(--ink2);white-space:nowrap;border-bottom:2px solid transparent;}
+.tabs button.on{color:var(--pa);border-bottom-color:var(--pa);font-weight:600;}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--pa);outline-offset:1px;}
+
+.sheet{background:#fff;padding:20px;padding-bottom:96px;max-width:920px;margin:0 auto;min-height:60vh;}
+.sheet-head{display:flex;align-items:center;gap:14px;padding-bottom:12px;border-bottom:2px solid var(--pa);margin-bottom:6px;}
+.sheet-head img{height:22px;width:auto;flex:0 0 auto;}
+.sheet-head div{min-width:0;}
+.sheet-head strong{display:block;font-size:15px;}
+.sheet-head span{font-size:11.5px;color:var(--ink2);}
+
+.sec{margin:26px 0 10px;}
+.sec h3{margin:0;font-size:14px;font-weight:600;display:flex;align-items:baseline;gap:9px;border-bottom:1px solid var(--rule);padding-bottom:6px;}
+.sec h3 b{color:var(--pa);font-size:12px;font-weight:700;min-width:14px;}
+.sec p{margin:6px 0 0;font-size:12.5px;color:var(--ink2);max-width:74ch;}
+
+.r{display:grid;grid-template-columns:1fr auto;gap:4px 14px;padding:6px 0;border-bottom:1px solid #eef1f4;align-items:baseline;}
+.r-l{font-size:13px;}
+.r-v{text-align:right;font-size:13.5px;white-space:nowrap;}
+.r-n{grid-column:1/-1;font-size:11.5px;color:var(--ink2);}
+.r.strong{background:#f6f8fa;margin:0 -8px;padding:8px;border-bottom:1px solid var(--rule);}
+.r.strong .r-l{font-weight:600;}
+.r.strong .r-v{font-weight:700;font-size:15px;}
+.r.sub .r-l,.r.sub .r-v{color:var(--ink2);font-size:12.5px;}
+.t-pos{color:var(--pos);}.t-neg{color:var(--neg);}.t-key{color:var(--pa);}
+
+.hero{display:grid;grid-template-columns:1.3fr 1fr;border:1px solid var(--rule);margin-bottom:6px;}
+.hero-main{padding:20px;border-right:1px solid var(--rule);}
+.hero-lb{display:block;font-size:12.5px;color:var(--ink2);}
+.hero-v{display:block;font-size:32px;font-weight:700;letter-spacing:-.02em;margin:4px 0 6px;color:var(--pa);}
+.hero-sub{font-size:12.5px;color:var(--ink2);}
+.hero-side{display:flex;flex-direction:column;justify-content:center;padding:14px 18px;gap:10px;background:#f6f8fa;}
+.hero-side div{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;align-items:baseline;}
+.hero-side span{color:var(--ink2);}
+.hero-side strong{font-size:14px;}
+
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px;margin-top:12px;}
+.fld{display:flex;flex-direction:column;gap:4px;}
+.fld.wide{grid-column:1/-1;}
+.fld label{font-size:12.5px;color:var(--ink2);}
+.fld .in{display:flex;align-items:center;background:var(--am);border:1px solid var(--amb);border-radius:2px;}
+.fld .in input{border:0;background:none;padding:7px 9px;width:100%;min-width:0;font-size:13.5px;}
+.fld .in input:focus{outline:none;}
+.fld .in:focus-within{box-shadow:0 0 0 2px rgba(31,78,121,.25);}
+.fld .in em{font-style:normal;font-size:11.5px;color:#8a6d20;padding:0 9px;white-space:nowrap;}
+.fld select{background:var(--am);border:1px solid var(--amb);border-radius:2px;padding:7px 9px;font-size:13.5px;width:100%;}
+.fld .hint{font-size:11px;color:var(--ink2);}
+
+.calcbar{display:flex;flex-wrap:wrap;gap:22px;margin-top:12px;padding:10px 12px;background:#f0f4f8;border-left:3px solid var(--pa);}
+.calcbar span{font-size:12px;color:var(--ink2);display:flex;flex-direction:column;}
+.calcbar b{font-size:14px;color:var(--ink);}
+
+.tbl{border:1px solid var(--rule);margin-top:10px;overflow-x:auto;}
+.tbl .h,.tbl .row{display:grid;grid-template-columns:1.7fr .9fr .9fr .9fr;gap:8px;padding:8px 10px;align-items:baseline;min-width:520px;}
+.tbl .h{background:var(--pa);color:#fff;font-size:11.5px;font-weight:600;}
+.tbl .h span:not(:first-child),.tbl .row span.num{text-align:right;}
+.tbl .row{border-top:1px solid #eef1f4;font-size:12.5px;}
+.tbl .row.on{background:#fdf3d3;}
+.tbl .row span.best{color:var(--pos);font-weight:700;}
+.tbl .row span.best::after{content:" \2022";}
+
+.call{margin:16px 0;padding:14px 16px;border-left:3px solid var(--pos);background:#f2f8f4;}
+.call.neg{border-left-color:var(--neg);background:#fdf4f4;}
+.call span{font-size:12.5px;color:var(--ink2);}
+.call strong{display:block;font-size:22px;font-weight:700;margin:2px 0 4px;color:var(--pos);}
+.call.neg strong{color:var(--neg);}
+.call p{margin:0;font-size:12px;color:var(--ink2);}
+
+.notes{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:12px;}
+.notes div{border-top:2px solid var(--rule);padding-top:8px;}
+.notes b{font-size:12.5px;}
+.notes p{margin:3px 0 0;font-size:12px;color:var(--ink2);}
+
+.src{display:grid;gap:14px;margin-top:12px;}
+.src div{border-left:2px solid var(--rule);padding-left:12px;}
+.src b{font-size:12.5px;}
+.src p{margin:3px 0 0;font-size:12.5px;color:var(--ink2);max-width:74ch;}
+
+.foot{font-size:11.5px;color:var(--ink2);margin-top:8px;max-width:74ch;}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px;}
+.btn{border:1px solid var(--pa);background:var(--pa);color:#fff;padding:9px 16px;border-radius:2px;font-size:13px;}
+.btn.alt{background:#fff;color:var(--pa);}
+.btn.ghost{background:none;border-color:var(--rule);color:var(--ink2);}
+.dem-ctl .switch{background:#dde4ec;}
+.dem-ctl .switch button{color:#4a5c6e;}
+.dem-ctl .switch button.on{background:var(--pa);color:#fff;}
+
+.doc{border:1px solid var(--rule);padding:28px;margin-top:22px;background:#fff;}
+.doc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid var(--pa);padding-bottom:12px;}
+.doc-h img{height:30px;width:auto;margin-bottom:8px;display:block;}
+.doc-h strong{display:block;font-size:17px;}
+.doc-h .meta{font-size:12px;color:var(--ink2);}
+.doc-h-r{text-align:right;flex:0 0 auto;}
+.doc-h-r span{display:block;font-size:11px;color:var(--ink2);}
+.doc-h-r b{display:block;font-size:13px;}
+.doc-id{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;}
+.doc-id div{display:flex;flex-direction:column;}
+.doc-id span{font-size:11px;color:var(--ink2);}
+.doc-id b{font-size:13px;}
+.doc-t{width:100%;border-collapse:collapse;margin:8px 0 16px;}
+.doc-t td{padding:7px 0;border-bottom:1px solid #eef1f4;font-size:13px;}
+.doc-t td.num{text-align:right;white-space:nowrap;}
+.doc-t tr.tot td{border-top:1px solid var(--ink);border-bottom:2px solid var(--ink);font-weight:700;font-size:15px;}
+.doc-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:6px;}
+.doc-cols h4{margin:0 0 6px;font-size:12.5px;}
+.doc-cols ul{margin:0;padding-left:16px;}
+.doc-cols li,.doc-cols p{font-size:12.5px;color:var(--ink2);margin:0 0 8px;}
+.doc-cols p b{color:var(--ink);}
+.doc-int{margin-top:22px;border-top:1px dashed var(--rule);padding-top:14px;}
+.doc-int h4{margin:0 0 6px;font-size:12.5px;color:var(--neg);}
+.doc-obs{font-size:12.5px;color:var(--ink2);border-left:2px solid var(--rule);padding-left:10px;margin-top:16px;}
+.doc-f{margin-top:26px;border-top:1px solid var(--rule);padding-top:12px;}
+.doc-f p{font-size:11px;color:var(--ink2);margin:0;max-width:80ch;}
+.doc-sign{margin-top:34px;width:260px;}
+.doc-sign .line{display:block;border-top:1px solid var(--ink);}
+.doc-sign b{font-size:11px;color:var(--ink2);font-weight:400;}
+
+.kpis{position:fixed;left:0;right:0;bottom:0;display:flex;background:#16202b;color:#fff;z-index:6;overflow-x:auto;}
+.kpis div{padding:9px 16px;border-right:1px solid #2b3946;display:flex;flex-direction:column;white-space:nowrap;}
+.kpis span{font-size:10.5px;color:#93a4b4;}
+.kpis strong{font-size:14px;}
+.kpis .mode{margin-left:auto;justify-content:center;color:#93a4b4;font-size:11.5px;border-right:0;}
+
+.warn{margin-top:14px;padding:10px 12px;background:#fff8e6;border-left:3px solid var(--amb);font-size:12px;color:#6b5410;}
+.warn b{display:block;margin-bottom:2px;color:#4a3a08;}
+
+@media (max-width:640px){
+  .grid,.notes,.doc-cols{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .hero-main{border-right:0;border-bottom:1px solid var(--rule);}
+  .doc-id{grid-template-columns:repeat(2,1fr);}
+  .sheet{padding:14px;padding-bottom:92px;}
+  .doc{padding:16px;}
+  .hero-v{font-size:26px;}
+  .top-brand h1{font-size:14px;}
+}
+@media print{
+  .no-print,.tabs,.top,.kpis,.sheet-head{display:none !important;}
+  html,body{background:#fff;margin:0;padding:0;}
+  .sheet{padding:0;max-width:none;min-height:0;}
+  .doc{border:0;padding:0;margin:0;box-shadow:none;}
+  .doc-t tr,.r{page-break-inside:avoid;}
+  a[href]:after{content:"";}
+  @page{margin:14mm;}
+}
+/* durante a impressao, so o documento fica visível também na tela */
+body.imprimindo .no-print,
+body.imprimindo .tabs,
+body.imprimindo .top,
+body.imprimindo .kpis,
+body.imprimindo .sheet-head{display:none !important;}
+
+/* tabela detalhada da versão interna do demonstrativo */
+.doc-det th{font-size:11px;color:var(--ink2);border-bottom:1px solid var(--ink);padding:5px 0;text-align:left;}
+.doc-det th.num{text-align:right;}
+.doc-det tr.sec td{background:#f2f5f8;font-weight:700;font-size:11.5px;padding:6px 8px;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.doc-det tr.sub td{font-size:12px;color:#4a5560;padding:4px 0;}
+.doc-det tr.sub td:first-child{padding-left:14px;}
+.doc-det tr.tot td{font-weight:700;border-top:1px solid var(--rule);border-bottom:1px solid var(--ink);font-size:12.5px;}
+.doc-det td{padding:4px 0;}
+.doc-ind{margin-top:14px;}
+.doc-ind td{font-size:12px;padding:4px 8px;border-bottom:1px solid #eef1f4;}
+.doc-ind td.num{text-align:right;font-weight:600;}
+.doc-frete{margin-top:6px;}
+.doc-frete tr.sec td{background:#f2f5f8;font-weight:700;font-size:12px;padding:6px 8px;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.doc-nota{font-size:11.5px;color:var(--ink2);border-left:2px solid var(--amb);
+  padding:6px 10px;margin:0 0 14px;background:#fffdf6;}
+.doc-unit{margin-top:4px;}
+.doc-unit tr.sec td{background:#f2f5f8;font-weight:700;font-size:12px;padding:6px 8px;
+  border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+.doc-unit td{padding:5px 8px;font-size:12.5px;}
+.doc-unit tr.tot td{border-top:1px solid var(--ink);border-bottom:2px solid var(--ink);
+  font-weight:700;font-size:14px;}
+.doc-frete tr.dil td{font-size:11.5px;color:var(--ink2);padding-top:0;}
+.doc-frete tr.dil td:first-child{padding-left:18px;font-style:italic;}
+</style>
+</head>
+<body>
+<header class="top no-print">
+  <div class="top-brand">
+    <img id="brandLogo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="EPIC">
+    <div class="bar"></div>
+    <h1>Simulador de importação</h1>
+  </div>
+  <div class="switch" id="modeSwitch" role="group" aria-label="Modalidade">
+    <button data-mode="direta" class="on">Importação direta</button>
+    <button data-mode="co">Conta e ordem</button>
+  </div>
+</header>
+<nav class="tabs no-print" id="tabs"></nav>
+<main class="sheet" id="sheet">
+  <div id="boot" style="max-width:640px;margin:40px auto;padding:20px;border:1px solid #d6dde4;
+       font-family:system-ui,sans-serif;line-height:1.5">
+    <strong style="display:block;font-size:16px;margin-bottom:8px">Carregando o simulador…</strong>
+    <p style="margin:0 0 10px;color:#5a6a7a">Se esta mensagem não sumir em alguns segundos, os arquivos
+    de apoio não foram encontrados. Este <code>index.html</code> é apenas a casca da página: ele precisa
+    das pastas <code>css/</code>, <code>js/</code> e <code>img/</code> no mesmo diretório.</p>
+    <p style="margin:0;color:#5a6a7a">Para usar o simulador num arquivo só, abra
+    <code>dist/index.html</code>, que já vem com tudo embutido.</p>
+  </div>
+</main>
+<footer class="kpis no-print" id="kpis"></footer>
+
+<script>
+"use strict";
+
+/* Sem isto, um erro de execucao deixaria a pagina em branco sem explicacao. */
+window.onerror = function(msg, arquivo, linha){
+  var alvo = document.getElementById("sheet");
+  if (!alvo) return false;
+  alvo.innerHTML = '<div style="max-width:640px;margin:40px auto;padding:20px;'
+    + 'border-left:3px solid #a4262c;background:#fdf4f4;font-family:system-ui,sans-serif">'
+    + '<strong style="display:block;margin-bottom:6px">O simulador falhou ao carregar</strong>'
+    + '<p style="margin:0 0 8px;color:#5a6a7a">' + esc(msg) + '</p>'
+    + '<p style="margin:0;color:#5a6a7a;font-size:12px">' + esc(arquivo) + ' linha ' + esc(linha) + '</p></div>';
+  return false;
+};
+
+function resolveAsset(u){ if (u.indexOf("data:") === 0) return u;
+  try { return new URL(u, document.baseURI).href; } catch(e){ return u; } }
+var VERSAO = "2026.09.09-b";   // carimbo de versao, visivel no rodape e na aba Fontes
+var LOGO_DARK = resolveAsset("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAh8AAABOCAYAAACAEHSqAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjdhYjUzOTkyLTkwNTYtNDQ1OS1hMjIzLTM5NGZlMDYwMGFiMQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoYxpk3P2DYhAqjZzE+zuTPgAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6YjA1NWNlYzMtZDRjZC00ZDExLTljYjctYzE3MmJmMjllOTE5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaJ6kW6k9ZHpom827G9GI/aIAAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIBHsP9JRV4PhPPPhGke++CCOXMTjd0XPoyQwaqhdwdiWpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2gmCJ4tEdP5vdL62LwKyYWEAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggCkls+ELTcVZvLRBrdf6Hn9Auo2j15FTFhd4f8AjySOtkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTo3YWI1Mzk5Mi05MDU2LTQ0NTktYTIyMy0zOTRmZTA2MDBhYjEvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDplOTQxZTRlMy1lMDU5LTQ3YTMtYTJlMy02NTNhNWUyMjI3ZGJyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggEew/0lFXg+E88+EaR774II5cxON3Rc+jJDBqqF3B2JaiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIIP7aWKOVr2CgPtDgA+dce7eFnwmGqwERgwsj+MiC06pomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYILL+s1sNfBITDXID69qQNVg2vM1GEWQ/8Rc4tQsF0egsdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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");
+var LOGO_LIGHT = resolveAsset("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAh8AAABOCAYAAACAEHSqAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjg1MGFkNmNiLWM3YmItNDU1YS1hZDg3LWQwYTE4NmE2ZWY3MwAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoJ79ZVaTWOeAof7lxd0nMLQAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6ODNlOGM0YjEtMDEyNy00ZjBkLTkyMzYtZTZjYjE3ZTM2NTk1bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaFNHNQ62haSJtVV/qJcogQEAAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYINIFX/5DkWICQUyFtBz9DG9OMep4Vq0UkyNKSoNQA3uOpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2iefO34PgszXl7fmhME72KOAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggPFU4X/NtD+mJXCVHYeUmJe8ciSLYYVlom/kzaOSGZrpkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTo4NTBhZDZjYi1jN2JiLTQ1NWEtYWQ4Ny1kMGExODZhNmVmNzMvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDpiNGIzYzBhNS1mMTJiLTQ4OTAtYTA3Ni1lNDg4YzcxZWUwNTlyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgg0gVf/kORYgJBTIW0HP0Mb04x6nhWrRSTI0pKg1ADe46iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIOV2qkb2mNfZDL1ad76B4/GkoCxnWO1XkGJeN0DmCcQDomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIE8ooo/Z4wzKAbZZ/MgGAzgU3k6FM+HyYS41CdZk6LixdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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");
+
+/* ============================ ESTADO ============================ */
+var DEFAULTS = {
+  produto:"TECIDO COLCHAO", ncm:"5407.61.00", unidade:"m\u00b2", ptax:"5,23",
+  origem:"Peru", preferencia:"0",
+  nVolumes:"1", qtdPorVolume:"186970", pesoPorVolume:"27", fobUnit:"0,40",
+  freteIntl:"9000", seguroPct:"0,60", freteNacional:"0", freteVenda:"0", freteCliente:"0",
+  ii:"26", ipiImp:"0", pisImp:"2,10", cofinsImp:"9,65", adicCofins:"0,60",
+  afrmm:"8", siscomex:"154,23", antidumping:"0", icmsImp:"0,80", icmsImpCreditavel:"0",
+  despachante:"1650", armazenagem:"5862", outras:"0",
+  preco:"3,525", icmsVenda:"4", pisVenda:"1,65", cofinsVenda:"7,60", ipiSaida:"0",
+  comissao:"0", irpjCsll:"34", despDedutiveis:"0", margemAlvo:"30", tema69:"1",
+  ufAdquirente:"BA", tradingPct:"0", tradingFixo:"0", icmsImpCO:"0",
+  icmsImpCOCreditavel:"1", icmsVendaCO:"4", creditarServico:"0", despesasInclusas:"0",
+  tradingPagaCliente:"0"
+};
+var PROP_DEF = {
+  cliente:"", cnpj:"", numero:"", data:"",
+  validade:"15 dias", porto:"Suape", prazo:"60 dias ap\u00f3s confirma\u00e7\u00e3o do pedido",
+  pagamento:"30% na confirma\u00e7\u00e3o, 70% contra documentos de embarque", obs:"",
+  emitente:"EPIC Importa\u00e7\u00e3o e Exporta\u00e7\u00e3o Ltda", emitenteCnpj:"", contato:""
+};
+/* Variaveis que pertencem a cada fornecedor. Tudo o que muda conforme a origem
+   da mercadoria. Os parametros de venda ficam de fora porque o produto e o preco
+   ao cliente sao os mesmos nos tres cenarios. */
+var FORN_KEYS = ["nome","origem","preferencia","ptax","nVolumes","qtdPorVolume","pesoPorVolume",
+  "fobUnit","freteIntl","seguroPct","freteNacional","ii","ipiImp","pisImp","cofinsImp",
+  "adicCofins","afrmm","siscomex","antidumping","icmsImp","icmsImpCreditavel",
+  "despachante","armazenagem","outras"];
+
+function fornPadrao(nome){
+  var o = { nome: nome };
+  for (var i = 0; i < FORN_KEYS.length; i++){
+    var k = FORN_KEYS[i];
+    if (k !== "nome") o[k] = DEFAULTS[k];
+  }
+  return normalizar(o);
+}
+function loadForn(){
+  var base = { A: fornPadrao("Fornecedor A"), B: fornPadrao("Fornecedor B"), C: fornPadrao("Fornecedor C") };
+  try {
+    var raw = localStorage.getItem("epic_forn");
+    if (raw){
+      var o = JSON.parse(raw);
+      ["A","B","C"].forEach(function(id){
+        if (!o[id]) return;
+        for (var i = 0; i < FORN_KEYS.length; i++){
+          var k = FORN_KEYS[i];
+          if (o[id][k] !== undefined) base[id][k] = o[id][k];
+        }
+        normalizar(base[id]);
+      });
+    }
+  } catch(e){}
+  return base;
+}
+
+/* Junta os parametros de venda com as variaveis de um fornecedor. */
+function paramsForn(id){
+  var out = Object.assign({}, S.p);
+  var f = S.forn[id];
+  for (var i = 0; i < FORN_KEYS.length; i++){
+    var k = FORN_KEYS[i];
+    if (k !== "nome" && f[k] !== undefined) out[k] = f[k];
+  }
+  return out;
+}
+
+function load(k, def){
+  try{ var raw = localStorage.getItem(k); if(!raw) return Object.assign({},def);
+       var o = JSON.parse(raw); var out = Object.assign({},def);
+       for(var i in def){ if(o[i]!==undefined) out[i]=o[i]; } return out;
+  }catch(e){ return Object.assign({},def); }
+}
+function save(){
+  try{ localStorage.setItem("epic_params", JSON.stringify(S.p));
+       localStorage.setItem("epic_prop", JSON.stringify(S.prop));
+       localStorage.setItem("epic_forn", JSON.stringify(S.forn));
+       localStorage.setItem("epic_sim_nuvem", JSON.stringify(S.nuvemCfg)); }catch(e){}
+  agendarNuvem();
+}
+
+/* ==================================================================
+   BACKUP NA NUVEM (AWS)
+   O app conversa com um endpoint HTTPS do proprio usuario. A chave da
+   AWS fica na Lambda, nunca aqui: um arquivo estatico e legivel por
+   qualquer um que o abra.
+   ================================================================== */
+var NUVEM_DEF = { url:"", token:"", empresa:"epic-simulador", auto:"0", freq:"10" };
+
+/* ==================================================================
+   NUMERA\u00c7\u00c3O DAS PROPOSTAS
+   Sequencial real, gravado no navegador. Reinicia a cada ano.
+   ================================================================== */
+function hojeBR(){ return new Date().toLocaleDateString("pt-BR"); }
+function pad3(n){ n = String(n); while (n.length < 3) n = "0" + n; return n; }
+
+function carregarNum(){
+  var o = { seq:0, ano:new Date().getFullYear(), historico:[] };
+  try{
+    var raw = localStorage.getItem("epic_num");
+    if (raw){
+      var d = JSON.parse(raw);
+      if (typeof d.seq === "number") o.seq = d.seq;
+      if (typeof d.ano === "number") o.ano = d.ano;
+      if (Array.isArray(d.historico)) o.historico = d.historico.filter(function(x){
+        return x && typeof x === "object" && !Array.isArray(x);
+      });
+    }
+  }catch(e){}
+  return o;
+}
+function salvarNum(){ try{ localStorage.setItem("epic_num", JSON.stringify(S.num)); }catch(e){} }
+
+function proximoNumero(){
+  var ano = new Date().getFullYear();
+  if (S.num.ano !== ano){ S.num.ano = ano; S.num.seq = 0; }   // vira o ano, reinicia
+  S.num.seq++;
+  salvarNum();
+  return pad3(S.num.seq) + "/" + ano;
+}
+function jaEmitida(numero){
+  for (var i = 0; i < S.num.historico.length; i++)
+    if (S.num.historico[i].numero === numero) return true;
+  return false;
+}
+/* Grava a proposta no hist\u00f3rico. Chamado ao gerar o PDF. */
+function registrarProposta(c){
+  if (jaEmitida(S.prop.numero)) return false;
+  S.num.historico.unshift({
+    numero: S.prop.numero,
+    cliente: S.prop.cliente || "(sem cliente)",
+    data: S.prop.data || hojeBR(),
+    produto: S.p.produto || "",
+    quantidade: c ? qty(c.qtd) + " " + u() : "",
+    valor: c ? money(c.totalCliente) : "",
+    modalidade: S.modo === "co" ? "Conta e ordem" : "Direta"
+  });
+  if (S.num.historico.length > 200) S.num.historico.length = 200;
+  salvarNum();
+  return true;
+}
+function contarDoCliente(nome){
+  var alvo = String(nome || "").trim().toLowerCase(), n = 0;
+  S.num.historico.forEach(function(x){
+    if (String(x.cliente || "").trim().toLowerCase() === alvo && alvo) n++;
+  });
+  return n;
+}
+
+function carregarNuvem(){
+  var o = Object.assign({}, NUVEM_DEF);
+  try{
+    var raw = localStorage.getItem("epic_sim_nuvem");
+    if (raw){ var d = JSON.parse(raw); for (var k in NUVEM_DEF) if (d[k] !== undefined) o[k] = d[k]; }
+  }catch(e){}
+  return o;
+}
+
+function pacoteBackup(){
+  return {
+    formato: "epic-simulador-1",
+    empresa: S.nuvemCfg.empresa || "epic-simulador",
+    geradoEm: new Date().toISOString(),
+    resumo: { produto: S.p.produto, ncm: S.p.ncm,
+              fornecedores: ["A","B","C"].map(function(i){ return S.forn[i].nome; }).join(" · ") },
+    dados: { p:S.p, prop:S.prop, forn:S.forn }
+  };
+}
+function assinatura(txt){
+  var h = 5381;
+  for (var i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0;
+  return txt.length + "-" + h.toString(36);
+}
+function nuvemConfigurada(){ return !!(S.nuvemCfg.url && S.nuvemCfg.url.indexOf("http") === 0); }
+function urlNuvem(caminho){ return String(S.nuvemCfg.url || "").replace(/\/+$/, "") + caminho; }
+function cabecalhosNuvem(){
+  return { "Content-Type":"application/json", "X-Epic-Token": S.nuvemCfg.token || "" };
+}
+
+function enviarNuvem(manual){
+  if (!nuvemConfigurada()){
+    if (manual){ S.nuvem.estado = "erro";
+                 S.nuvem.detalhe = "Informe o endereço do endpoint."; render(); }
+    return;
+  }
+  if (S.nuvem.enviando) return;
+  var pacote = pacoteBackup();
+  var corpo = JSON.stringify(pacote);
+  var assin = assinatura(JSON.stringify(pacote.dados));   // sem o geradoEm, que muda sempre
+  if (!manual && assin === S.nuvem.assinatura) return;
+
+  S.nuvem.enviando = true; S.nuvem.estado = "enviando"; S.nuvem.detalhe = "";
+  ultimoEnvio = Date.now();
+  if (manual) render();
+
+  fetch(urlNuvem("/backup"), { method:"POST", headers:cabecalhosNuvem(), body:corpo })
+    .then(function(r){
+      if (!r.ok) throw new Error("HTTP " + r.status + (r.status === 401 ? " — token recusado" : ""));
+      return r.json().catch(function(){ return {}; });
+    })
+    .then(function(resp){
+      S.nuvem.enviando = false; S.nuvem.estado = "ok"; S.nuvem.assinatura = assin;
+      S.nuvem.ultimo = new Date().toLocaleString("pt-BR");
+      S.nuvem.detalhe = resp && resp.arquivo ? resp.arquivo : "";
+      S.nuvem.lista = null; render();
+    })
+    .catch(function(e){
+      S.nuvem.enviando = false; S.nuvem.estado = "erro";
+      S.nuvem.detalhe = String(e.message || e); render();
+    });
+}
+
+function listarNuvem(){
+  if (!nuvemConfigurada()){ S.nuvem.estado = "erro";
+    S.nuvem.detalhe = "Informe o endereço do endpoint."; render(); return; }
+  S.nuvem.estado = "listando"; render();
+  fetch(urlNuvem("/backups?empresa=" + encodeURIComponent(S.nuvemCfg.empresa || "epic-simulador")),
+        { headers:cabecalhosNuvem() })
+    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(j){
+      S.nuvem.lista = (j && j.itens) || [];
+      S.nuvem.estado = S.nuvem.lista.length ? "ok" : "vazio"; render();
+    })
+    .catch(function(e){ S.nuvem.estado = "erro"; S.nuvem.detalhe = String(e.message||e); render(); });
+}
+
+function restaurarNuvem(arquivo){
+  if (!confirm("Restaurar esta simulação? Os parâmetros atuais serão substituídos.")) return;
+  S.nuvem.estado = "restaurando"; render();
+  fetch(urlNuvem("/backup?arquivo=" + encodeURIComponent(arquivo)), { headers:cabecalhosNuvem() })
+    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function(j){
+      var d = (j && j.dados) || j;
+      if (!d || !d.p) throw new Error("arquivo sem parâmetros");
+      S.p = normalizar(Object.assign({}, DEFAULTS, d.p));
+      S.prop = Object.assign({}, PROP_DEF, d.prop || {});
+      if (d.forn){ ["A","B","C"].forEach(function(i){
+        if (d.forn[i]) S.forn[i] = normalizar(Object.assign(fornPadrao("Fornecedor "+i), d.forn[i])); }); }
+      S.nuvem.estado = "ok"; S.nuvem.assinatura = "";
+      S.tab = "resumo"; render(); window.scrollTo(0,0);
+    })
+    .catch(function(e){ S.nuvem.estado = "erro"; S.nuvem.detalhe = String(e.message||e); render(); });
+}
+
+var timerNuvem = null, ultimoEnvio = 0;
+function agendarNuvem(){
+  clearTimeout(timerNuvem);
+  timerNuvem = null;
+  if (num(S.nuvemCfg.auto) !== 1 || !nuvemConfigurada()) return;
+  var minutos = Math.max(1, num(S.nuvemCfg.freq) || 10);
+  var espera = Math.max(8000, minutos * 60000 - (Date.now() - ultimoEnvio));
+  timerNuvem = setTimeout(function(){
+    timerNuvem = null;
+    if (num(S.nuvemCfg.auto) === 1 && nuvemConfigurada()) enviarNuvem(false);
+  }, espera);
+}
+
+/* ============================ NUMEROS ============================ */
+/* Casas decimais de cada campo numerico. Campos com 0 nunca tem parte
+   fracionaria, entao ponto e virgula neles sao sempre separador de milhar. */
+var NUMF = { ptax:4, preferencia:0, nVolumes:0, qtdPorVolume:0, pesoPorVolume:3, fobUnit:4,
+  freteIntl:2, seguroPct:2, freteNacional:2, freteVenda:4, freteCliente:2, ii:2, ipiImp:2, pisImp:2,
+  cofinsImp:2, adicCofins:2, afrmm:2, siscomex:2, antidumping:4, icmsImp:2, despachante:2,
+  armazenagem:2, outras:2, preco:4, icmsVenda:2, pisVenda:2, cofinsVenda:2, ipiSaida:2,
+  comissao:2, irpjCsll:2, despDedutiveis:2, margemAlvo:2, tradingPct:2, tradingFixo:2,
+  icmsImpCO:2, icmsVendaCO:2 };
+
+/* Carregar somente depois de definir os padroes da nuvem e a precisao numerica. */
+var S = { p:normalizar(load("epic_params", DEFAULTS)), prop:load("epic_prop", PROP_DEF),
+          forn:loadForn(), fornAtivo:"A",
+  nuvemCfg:carregarNuvem(), num:carregarNum(),
+  nuvem:{ estado:"", detalhe:"", ultimo:"", assinatura:"", enviando:false, lista:null },
+          tab:"resumo", modo:"direta", versaoCliente:true };
+
+/* Interpreta o texto digitado sabendo quantas casas decimais o campo aceita. */
+function parseField(txt, dec){
+  var s = String(txt === null || txt === undefined ? "" : txt).replace(/[^0-9.,\-]/g, "");
+  if (!s) return 0;
+  var neg = s.indexOf("-") === 0;
+  s = s.replace(/-/g, "");
+  if (dec === 0){
+    s = s.replace(/[.,]/g, "");                 // inteiro: separador so pode ser milhar
+  } else {
+    var dp = Math.max(s.lastIndexOf(","), s.lastIndexOf("."));
+    if (dp >= 0){
+      var sep = s.charAt(dp);
+      var vezes = s.split(sep).length - 1;      // repetido = milhar
+      var ini = s.slice(0, dp).replace(/[.,]/g, "");
+      var fim = s.slice(dp + 1).replace(/[.,]/g, "");
+      s = (vezes > 1) ? (ini + fim) : (ini + "." + fim);
+    }
+  }
+  var x = parseFloat(s);
+  if (!isFinite(x)) return 0;
+  return neg ? -x : x;
+}
+
+/* Formato de exibicao, com separador de milhar. Se o resultado sair com ponto de
+   milhar e nenhuma virgula, forca as casas decimais: sem isso "1650" viraria
+   "1.650" e a releitura seguinte devolveria 1,65. */
+function fmtNum(v, dec){
+  var x = parseField(v, dec);
+  var s = x.toLocaleString("pt-BR", {minimumFractionDigits:0, maximumFractionDigits:dec});
+  if (dec > 0 && s.indexOf(".") >= 0 && s.indexOf(",") < 0){
+    s = x.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:dec});
+  }
+  return s;
+}
+
+/* Converte todo campo numerico para a forma canonica: ponto decimal, sem milhar.
+   E o que fica guardado no estado, para o num() nunca ficar ambiguo. */
+function normalizar(obj){
+  for (var k in NUMF){
+    if (obj[k] !== undefined) obj[k] = String(parseField(obj[k], NUMF[k]));
+  }
+  return obj;
+}
+
+function num(v){
+  if (typeof v === "number") return isFinite(v)?v:0;
+  if (v === null || v === undefined) return 0;
+  var s = String(v).trim().replace(/[^0-9.,\-]/g, "");
+  if (!s) return 0;
+  var neg = s.charAt(0) === "-"; s = s.replace(/-/g,"");
+  var hasC = s.indexOf(",") >= 0, hasD = s.indexOf(".") >= 0;
+  if (hasC && hasD){ s = s.replace(/\./g,""); s = s.replace(/,/g,"."); }
+  else if (hasC){ var pc = s.split(","); s = pc.length>2 ? pc.join("") : pc.join("."); }
+  else if (hasD){ var pd = s.split("."); s = pd.length>2 ? pd.join("") : pd.join("."); }
+  var x = parseFloat(s);
+  if (!isFinite(x)) return 0;
+  return neg ? -x : x;
+}
+function pc(v){ return num(v)/100; }
+function brl(v,d){ d = (d===undefined)?2:d; v = isFinite(v)?v:0;
+  return v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function money(v,d){ return "R$ " + brl(v,d); }
+function perc(v,d){ d=(d===undefined)?2:d; return brl((isFinite(v)?v:0)*100,d) + "%"; }
+function qty(v){ return brl(v,0); }
+function esc(s){ return String(s===undefined||s===null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ============================ CALCULO ============================ */
+function compute(p){
+  var ptax = num(p.ptax), nVol = num(p.nVolumes);
+  var qtd = num(p.qtdPorVolume) * nVol;
+  var peso = num(p.pesoPorVolume) * nVol;
+  var fobUSD = qtd * num(p.fobUnit);
+
+  var fobBRL = fobUSD * ptax;
+  var freteBRL = num(p.freteIntl) * nVol * ptax;
+  var seguroBRL = fobUSD * pc(p.seguroPct) * ptax;
+  var va = fobBRL + freteBRL + seguroBRL;
+
+  var prefer = Math.max(0, Math.min(100, num(p.preferencia)))/100;
+  var iiAliq = pc(p.ii) * (1 - prefer);
+  var ii = va * iiAliq;
+  var ipiImp = (va + ii) * pc(p.ipiImp);
+  var pisImp = va * pc(p.pisImp);
+  var cofinsImp = va * pc(p.cofinsImp);
+  var adicCofins = va * pc(p.adicCofins);
+  var afrmm = freteBRL * pc(p.afrmm);
+  var siscomex = num(p.siscomex);
+  var antidumping = num(p.antidumping) * peso * ptax;
+  var subFed = ii + ipiImp + pisImp + cofinsImp + adicCofins + afrmm + siscomex + antidumping;
+
+  var baseIcms = va + subFed;
+  function grossUp(r){ return (r >= 1 || r <= 0) ? (r<=0?0:0) : baseIcms * r / (1 - r); }
+
+  var freteNacTotal = num(p.freteNacional) * nVol;
+  // frete do porto ate o cliente, pago por ele direto \u00e0 transportadora:
+  // fica fora da base de impostos, do custo e do resultado. Entra s\u00f3 como
+  // informa\u00e7\u00e3o de custo unit\u00e1rio para o cliente.
+  var freteClienteTotal = num(p.freteCliente) * nVol;
+  var freteClienteUnit = qtd ? freteClienteTotal / qtd : 0;
+  var armazTotal = num(p.armazenagem) * nVol;
+
+  var icmsImpD = grossUp(pc(p.icmsImp));
+  var despLocaisD = num(p.despachante) + armazTotal + num(p.outras) + freteNacTotal;
+  var desembolsadoD = va + subFed + icmsImpD + despLocaisD;
+  var credIcmsD = icmsImpD * num(p.icmsImpCreditavel);
+  var custoLiqD = desembolsadoD - ipiImp - pisImp - cofinsImp - credIcmsD;
+
+  var inclusas = num(p.despesasInclusas) === 1;
+  var servicoTrading = va * pc(p.tradingPct) + num(p.tradingFixo) * nVol;   // taxa fixa por conteiner
+  // quando o cliente paga a trading direto, a taxa sai do custo, da base de
+  // impostos e do resultado, exatamente como o frete pago por ele
+  var tradingCli = num(p.tradingPagaCliente) === 1;
+  var servicoEmpresa = tradingCli ? 0 : servicoTrading;
+  var despachanteCO = inclusas ? 0 : num(p.despachante);
+  var armazCO = inclusas ? 0 : armazTotal;
+  var outrasCO = inclusas ? 0 : num(p.outras);
+  var despLocaisCO = servicoEmpresa + despachanteCO + armazCO + outrasCO + freteNacTotal;
+  var icmsImpCO = grossUp(pc(p.icmsImpCO));
+  var credIcmsCO = icmsImpCO * num(p.icmsImpCOCreditavel);
+  var credServico = servicoEmpresa * (pc(p.pisVenda) + pc(p.cofinsVenda)) * num(p.creditarServico);
+  var desembolsadoCO = va + subFed + icmsImpCO + despLocaisCO;
+  var custoLiqCO = desembolsadoCO - ipiImp - pisImp - cofinsImp - credIcmsCO - credServico;
+
+  var preco = num(p.preco);
+  var receita = preco * qtd;
+  var ipiNF = receita * pc(p.ipiSaida);
+  var totalCliente = receita + ipiNF;
+  var comissao = receita * pc(p.comissao);
+  var freteVendaTotal = num(p.freteVenda) * qtd;
+  var dedut = num(p.despDedutiveis);
+  var tema69 = num(p.tema69) === 1;
+
+  function venda(aliqIcms, custoLiq, credIcms){
+    var icms = receita * aliqIcms;
+    var basePC = tema69 ? (receita - icms) : receita;
+    var pis = basePC * pc(p.pisVenda);
+    var cofins = basePC * pc(p.cofinsVenda);
+    var impostos = icms + pis + cofins;
+    var lair = receita - impostos - custoLiq - comissao - freteVendaTotal;
+    var base = Math.max(0, lair - dedut);
+    var ir = base * pc(p.irpjCsll);
+    var liquido = lair - dedut - ir;
+    var fatorPC = (tema69 ? (1 - aliqIcms) : 1) * (pc(p.pisVenda) + pc(p.cofinsVenda));
+    var denom = 1 - aliqIcms - fatorPC - pc(p.comissao);
+    var be = (qtd === 0 || denom <= 0) ? 0 : (custoLiq + freteVendaTotal) / (qtd * denom);
+    var beFix = (qtd === 0 || denom <= 0) ? 0 : (custoLiq + freteVendaTotal + dedut) / (qtd * denom);
+    var dAlvo = denom - pc(p.margemAlvo);
+    var sug = (qtd === 0 || dAlvo <= 0) ? 0 : (custoLiq + freteVendaTotal) / (qtd * dAlvo);
+    return { icms:icms, pis:pis, cofins:cofins, impostos:impostos, basePC:basePC,
+      lair:lair, base:base, ir:ir, liquido:liquido, be:be, beFixos:beFix,
+      sugerido:sug, sugeridoComIpi:sug*(1+pc(p.ipiSaida)), denom:denom,
+      margemOp: receita? lair/receita : 0, margemLiq: receita? liquido/receita : 0,
+      lucroUnit: qtd? liquido/qtd : 0, lucroVolume: nVol? liquido/nVol : 0,
+      markup: custoLiq? receita/custoLiq : 0,
+      custoUnitVenda: (qtd? custoLiq/qtd : 0) + (qtd? impostos/qtd : 0) + (qtd? comissao/qtd : 0) + num(p.freteVenda),
+      credIcms: credIcms, saldoCredorIcms: Math.max(0, credIcms - icms) };
+  }
+
+  var D = venda(pc(p.icmsVenda), custoLiqD, credIcmsD);
+  var CO = venda(pc(p.icmsVendaCO), custoLiqCO, credIcmsCO);
+
+  function precoPara(margem, aliqIcms, custoLiq){
+    var fatorPC = (tema69 ? (1 - aliqIcms) : 1) * (pc(p.pisVenda) + pc(p.cofinsVenda));
+    var d = 1 - aliqIcms - fatorPC - pc(p.comissao) - margem;
+    return (qtd === 0 || d <= 0) ? 0 : (custoLiq + freteVendaTotal) / (qtd * d);
+  }
+
+  return { qtd:qtd, peso:peso, fobUSD:fobUSD, nVol:nVol, ptax:ptax,
+    va:va, fobBRL:fobBRL, freteBRL:freteBRL, seguroBRL:seguroBRL,
+    ii:ii, iiAliq:iiAliq, prefer:prefer, ipiImp:ipiImp, pisImp:pisImp, cofinsImp:cofinsImp,
+    adicCofins:adicCofins, afrmm:afrmm, siscomex:siscomex, antidumping:antidumping, subFed:subFed,
+    baseIcms:baseIcms, freteNacTotal:freteNacTotal, armazTotal:armazTotal,
+    freteClienteTotal:freteClienteTotal, freteClienteUnit:freteClienteUnit,
+    receita:receita, ipiNF:ipiNF, totalCliente:totalCliente, comissao:comissao,
+    freteVendaTotal:freteVendaTotal, preco:preco, tema69:tema69,
+    ipiSaldoCredor: Math.max(0, ipiImp - ipiNF), ipiLiquido: ipiNF - ipiImp,
+    direta: Object.assign({ icmsImp:icmsImpD, despLocais:despLocaisD, desembolsado:desembolsadoD,
+      credIcms:credIcmsD, custoLiq:custoLiqD, credServico:0,
+      custoDesembUnit: qtd? desembolsadoD/qtd : 0, custoLiqUnit: qtd? custoLiqD/qtd : 0,
+      custoLiqTon: peso? custoLiqD/peso : 0, custoLiqVolume: nVol? custoLiqD/nVol : 0,
+      despachante:num(p.despachante), armazenagem:armazTotal, outras:num(p.outras),
+      servicoTrading:0 }, D),
+    tradingCli:tradingCli, servicoTradingTotal:servicoTrading,
+    co: Object.assign({ icmsImp:icmsImpCO, servicoTrading:servicoEmpresa, servicoTotal:servicoTrading, despachante:despachanteCO,
+      armazenagem:armazCO, outras:outrasCO, despLocais:despLocaisCO, desembolsado:desembolsadoCO,
+      credIcms:credIcmsCO, credServico:credServico, custoLiq:custoLiqCO,
+      custoDesembUnit: qtd? desembolsadoCO/qtd : 0, custoLiqUnit: qtd? custoLiqCO/qtd : 0,
+      custoLiqTon: peso? custoLiqCO/peso : 0, custoLiqVolume: nVol? custoLiqCO/nVol : 0 }, CO),
+    precoPara: precoPara };
+}
+
+/* ============================ HELPERS DE HTML ============================ */
+function sec(letter, title, note){
+  return '<div class="sec"><h3>' + (letter? '<b>'+letter+'</b>':'') + esc(title) + '</h3>'
+    + (note? '<p>'+esc(note)+'</p>' : '') + '</div>';
+}
+function row(l, v, o){
+  o = o || {};
+  return '<div class="r' + (o.strong?' strong':'') + (o.sub?' sub':'') + '">'
+    + '<span class="r-l">' + esc(l) + '</span>'
+    + '<span class="r-v' + (o.tone? ' t-'+o.tone : '') + '">' + v + '</span>'
+    + (o.note? '<span class="r-n">'+esc(o.note)+'</span>' : '') + '</div>';
+}
+function fld(key, label, o){
+  o = o || {};
+  var v = esc(S.p[key] !== undefined ? S.p[key] : S.prop[key]);
+  var cls = 'fld' + (o.wide?' wide':'');
+  var input;
+  if (o.options){
+    input = '<select data-k="' + key + '" data-store="' + (o.store||'p') + '">'
+      + o.options.map(function(op){
+          return '<option value="'+esc(op[0])+'"'+(String(S.p[key])===String(op[0])?' selected':'')+'>'+esc(op[1])+'</option>';
+        }).join('') + '</select>';
+  } else {
+    input = '<span class="in"><input data-k="' + key + '" data-store="' + (o.store||'p') + '"'
+      + (o.numeric? ' data-num="'+(o.dec===undefined?2:o.dec)+'" inputmode="decimal"':'')
+      + ' value="' + v + '" spellcheck="false"></span>';
+  }
+  return '<div class="'+cls+'"><label>'+esc(label)+'</label>'+input
+    + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+}
+function fldSuf(key, label, suffix, o){
+  o = o || {}; o.numeric = true;
+  var dec = (o.dec === undefined) ? (NUMF[key] === undefined ? 2 : NUMF[key]) : o.dec;
+  var v = esc(fmtNum(S.p[key], dec));
+  return '<div class="fld'+(o.wide?' wide':'')+'"><label>'+esc(label)+'</label>'
+    + '<span class="in"><input data-k="'+key+'" data-store="p" data-num="'+dec+'" inputmode="decimal" value="'+v+'" spellcheck="false">'
+    + (suffix? '<em>'+esc(suffix)+'</em>' : '') + '</span>'
+    + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+}
+function head(title, sub){
+  return '<div class="sheet-head"><img src="'+LOGO_DARK+'" alt="EPIC"><div>'
+    + '<strong>'+esc(title)+'</strong><span>'+esc(sub)+'</span></div></div>';
+}
+
+/* ============================ ABAS ============================ */
+var TABS = [["resumo","Resumo"],["parametros","Par\u00e2metros"],["nacionalizacao","Nacionaliza\u00e7\u00e3o"],
+  ["venda","Venda"],["contaordem","Conta e ordem"],["precoalvo","Pre\u00e7o-alvo"],
+  ["fornecedores","Fornecedores"],["demonstrativo","Demonstrativo"],["fontes","Fontes"]];
+
+function ctx(c){
+  var p = S.p;
+  return (p.produto||"Produto") + " \u00b7 NCM " + (p.ncm||"\u2014") + " \u00b7 " + qty(c.qtd) + " " + u()
+    + " \u00b7 " + qty(c.nVol) + (num(p.nVolumes)===1?" cont\u00eainer":" cont\u00eaineres")
+    + " \u00b7 " + (S.modo==="direta"?"Importa\u00e7\u00e3o direta":"Conta e ordem");
+}
+function u(){ return S.p.unidade || "un"; }
+function M(c){ return S.modo === "direta" ? c.direta : c.co; }
+
+function viewResumo(c){
+  var d = c.direta, o = c.co, un = u();
+  var linhas = [
+    ["Custo l\u00edquido total da mercadoria", money(d.custoLiq), money(o.custoLiq), o.custoLiq-d.custoLiq, true, false],
+    ["Custo l\u00edquido por "+un, money(d.custoLiqUnit,4), money(o.custoLiqUnit,4), o.custoLiqUnit-d.custoLiqUnit, true, false],
+    ["Receita bruta (s/ IPI)", money(c.receita), money(c.receita), 0, false, false],
+    ["Valor total a pagar pelo cliente", money(c.totalCliente), money(c.totalCliente), 0, false, false],
+    ["LAIR \u2014 lucro antes do IR", money(d.lair), money(o.lair), o.lair-d.lair, false, false],
+    ["Lucro l\u00edquido da opera\u00e7\u00e3o", money(d.liquido), money(o.liquido), o.liquido-d.liquido, false, false],
+    ["Margem l\u00edquida sobre a receita", perc(d.margemLiq), perc(o.margemLiq), o.margemLiq-d.margemLiq, false, true],
+    ["Ponto de equil\u00edbrio (R$/"+un+")", money(d.be,4), money(o.be,4), o.be-d.be, true, false],
+    ["Saldo credor de ICMS acumulado", money(d.saldoCredorIcms), money(o.saldoCredorIcms), o.saldoCredorIcms-d.saldoCredorIcms, true, false]
+  ];
+  var impacto = o.liquido - d.liquido - o.saldoCredorIcms;
+  var h = head("Resumo executivo", ctx(c));
+  h += '<div class="hero"><div class="hero-main">'
+    + '<span class="hero-lb">Valor total a pagar pelo cliente</span>'
+    + '<strong class="hero-v">' + money(c.totalCliente) + '</strong>'
+    + '<span class="hero-sub">' + qty(c.qtd) + ' ' + esc(un) + ' \u00d7 ' + money(c.preco,4)
+    + (num(S.p.ipiSaida)>0 ? ' + IPI destacado ' + money(c.ipiNF) : ' \u00b7 sem IPI destacado') + '</span></div>'
+    + '<div class="hero-side">'
+    + '<div><span>Pre\u00e7o por '+esc(un)+' com IPI</span><strong>' + money(c.qtd? c.totalCliente/c.qtd : 0,4) + '</strong></div>'
+    + '<div><span>Custo l\u00edquido por '+esc(un)+'</span><strong>' + money(M(c).custoLiqUnit,4) + '</strong></div>'
+    + '<div><span>Lucro l\u00edquido</span><strong>' + money(M(c).liquido) + '</strong></div>'
+    + '</div></div>';
+  h += sec("1","Comparativo entre modalidades","Mesma carga, mesmo pre\u00e7o de venda. O que muda \u00e9 a modalidade de importa\u00e7\u00e3o.");
+  h += '<div class="tbl"><div class="h"><span>Indicador</span><span>Direta</span><span>Conta e ordem</span><span>Diferen\u00e7a</span></div>';
+  linhas.forEach(function(L){
+    var delta = L[3], menorMelhor = L[4], isPerc = L[5];
+    var tone = Math.abs(delta) < 1e-9 ? "" : ((menorMelhor ? delta < 0 : delta > 0) ? "pos" : "neg");
+    var dtxt = Math.abs(delta) > 1e-9 ? ((delta>0?"+":"") + (isPerc? perc(delta) : money(delta))) : "\u2014";
+    h += '<div class="row"><span>'+esc(L[0])+'</span><span class="num">'+L[1]+'</span>'
+      + '<span class="num">'+L[2]+'</span><span class="num t-'+tone+'">'+dtxt+'</span></div>';
+  });
+  h += '</div>';
+  h += '<div class="call'+(impacto>=0?'':' neg')+'"><span>Impacto total de caixa ao migrar para conta e ordem</span>'
+    + '<strong>'+(impacto>0?"+":"")+money(impacto)+'</strong>'
+    + '<p>\u0394 lucro l\u00edquido menos o saldo credor de ICMS. Negativo significa que conta e ordem custa caixa.</p></div>';
+  h += sec("2","Pontos de aten\u00e7\u00e3o");
+  h += '<div class="notes">'
+    + '<div><b>ICMS em conta e ordem</b><p>STF Tema 520 (ARE 665.134): o ICMS-importa\u00e7\u00e3o \u00e9 devido ao estado do adquirente. Benef\u00edcio de Rond\u00f4nia n\u00e3o se aproveita se a empresa n\u00e3o estiver estabelecida em RO.</p></div>'
+    + '<div><b>Saldo credor de ICMS</b><p>Se o ICMS de entrada superar o da sa\u00edda, o cr\u00e9dito n\u00e3o \u00e9 absorvido e vira caixa parado, sem prazo de realiza\u00e7\u00e3o.</p></div>'
+    + '<div><b>IPI \u00e9 neutro</b><p>Tratado por fora: n\u00e3o \u00e9 receita, custo nem despesa. A apura\u00e7\u00e3o fica em memorando'
+    + (c.ipiSaldoCredor>0 ? '. Aten\u00e7\u00e3o: h\u00e1 ' + money(c.ipiSaldoCredor) + ' de cr\u00e9dito de IPI que a sa\u00edda n\u00e3o absorve.' : '.') + '</p></div>'
+    + '<div><b>Validar antes de fechar</b><p>II no Classif e preferência do acordo de origem, IPI na TIPI, antidumping por produtor, taxa Siscomex e o termo do benef\u00edcio de ICMS.</p></div>'
+    + '</div>';
+  return h;
+}
+
+function calcbarHTML(c){
+  var un = u();
+  return '<div class="calcbar" id="calcbar">'
+    + '<span>Quantidade total<b>' + qty(c.qtd) + ' ' + esc(un) + '</b></span>'
+    + '<span>Peso total<b>' + brl(c.peso,2) + ' t</b></span>'
+    + '<span>FOB total<b>US$ ' + brl(c.fobUSD) + '</b></span>'
+    + '<span>Valor aduaneiro<b>' + money(c.va) + '</b></span></div>';
+}
+
+function viewParametros(c){
+  var un = u();
+  var SN = [["1","Sim"],["0","N\u00e3o"]];
+  var h = head("Par\u00e2metros da simula\u00e7\u00e3o", ctx(c));
+  h += sec(null, "Preencha os campos amarelos", "Os resultados das outras abas recalculam na hora. Use v\u00edrgula ou ponto \u2014 o campo se reformata sozinho ao sair dele, mostrando exatamente o valor que foi entendido.");
+  h += sec("1","Identifica\u00e7\u00e3o e carga");
+  h += '<div class="grid">'
+    + fld("produto","Produto / descri\u00e7\u00e3o",{wide:true})
+    + fld("ncm","NCM")
+    + fld("unidade","Unidade de medida",{hint:"m\u00b2, kg, t, un, p\u00e7"})
+    + fld("origem","Pa\u00eds de origem")
+    + fldSuf("preferencia","Prefer\u00eancia tarif\u00e1ria do acordo","% do II",{hint:"100 = II zerado com certificado de origem. ACE 58 (Mercosul\u2013Peru) desgrava quase todo o universo tarif\u00e1rio",dec:0})
+    + fldSuf("ptax","C\u00e2mbio PTAX","R$/US$",{hint:"Usar a PTAX do registro da DI/DUIMP",dec:4})
+    + fldSuf("nVolumes","N\u00ba de cont\u00eaineres / volumes","",{dec:0})
+    + fldSuf("qtdPorVolume","Quantidade por volume ("+un+")","",{dec:0})
+    + fldSuf("pesoPorVolume","Peso por volume","t",{hint:"Alimenta o antidumping em US$/t",dec:3})
+    + fldSuf("fobUnit","FOB por "+un,"US$",{dec:4})
+    + '</div>';
+  h += calcbarHTML(c);
+  h += sec("2","Fretes e seguro");
+  h += '<div class="grid">'
+    + fldSuf("freteIntl","Frete internacional por cont\u00eainer","US$",{hint:"Base do AFRMM"})
+    + fldSuf("seguroPct","Seguro internacional","% do FOB",{hint:"Mercado usual 0,15% a 0,50%"})
+    + fldSuf("freteNacional","Frete nacional porto \u2192 dep\u00f3sito","R$/cont.")
+    + fldSuf("freteVenda","Frete de venda dep\u00f3sito \u2192 cliente","R$/"+un,{dec:4,hint:"Pago por voc\u00ea: entra no custo e reduz o resultado"})
+    + fldSuf("freteCliente","Frete porto \u2192 cliente, pago pelo cliente","R$/cont.",{hint:"Pago direto \u00e0 transportadora. Fica fora da base de impostos, do seu custo e do resultado \u2014 aparece no demonstrativo s\u00f3 como informa\u00e7\u00e3o"})
+    + '</div>';
+  h += sec("3","Tributos de nacionaliza\u00e7\u00e3o");
+  h += '<div class="grid">'
+    + fldSuf("ii","II \u2014 Imposto de Importa\u00e7\u00e3o","%",{hint:"Al\u00edquota cheia da TEC. A prefer\u00eancia do bloco 1 reduz sobre esta"})
+    + fldSuf("ipiImp","IPI importa\u00e7\u00e3o","%",{hint:"Base = VA + II. Recuper\u00e1vel"})
+    + fldSuf("pisImp","PIS-Importa\u00e7\u00e3o","%",{hint:"Regra geral 2,10%"})
+    + fldSuf("cofinsImp","COFINS-Importa\u00e7\u00e3o","%",{hint:"Regra geral 9,65%, sem o adicional"})
+    + fldSuf("adicCofins","Adicional COFINS-Importa\u00e7\u00e3o","%",{hint:"\u00a721-A: 0,8% em 2025, 0,6% em 2026, 0,4% em 2027. N\u00e3o gera cr\u00e9dito (STF Tema 1047)"})
+    + fldSuf("afrmm","AFRMM sobre o frete mar\u00edtimo","%",{hint:"8% em longo curso"})
+    + fldSuf("siscomex","Taxa Siscomex/DUIMP","R$")
+    + fldSuf("antidumping","Antidumping","US$/t",{hint:"Varia por produtor e origem",dec:4})
+    + fldSuf("icmsImp","ICMS-importa\u00e7\u00e3o \u2014 al\u00edquota","%",{hint:"Calculado por dentro (gross-up)"})
+    + fld("icmsImpCreditavel","ICMS-importa\u00e7\u00e3o \u00e9 credit\u00e1vel?",{options:SN,hint:"Em regime incentivado normalmente n\u00e3o"})
+    + '</div>';
+  h += sec("4","Despesas aduaneiras e locais");
+  h += '<div class="grid">'
+    + fldSuf("despachante","Despachante aduaneiro","R$/import.")
+    + fldSuf("armazenagem","Armazenagem / THC / capatazia","R$/cont.")
+    + fldSuf("outras","Outras despesas","R$/import.",{hint:"Lacres, demurrage, taxas banc\u00e1rias"})
+    + '</div>';
+  h += sec("5","Venda");
+  h += '<div class="grid">'
+    + fldSuf("preco","Pre\u00e7o de venda por "+un+" (sem IPI)","R$",{dec:4})
+    + fldSuf("icmsVenda","ICMS sobre a venda","%",{hint:"4% interestadual para importado \u2014 Res. Senado 13/2012"})
+    + fldSuf("pisVenda","PIS sobre a venda","%")
+    + fldSuf("cofinsVenda","COFINS sobre a venda","%")
+    + fld("tema69","Excluir o ICMS da base de PIS/COFINS?",{options:SN,hint:"STF Tema 69 (RE 574.706). Manter Sim"})
+    + fldSuf("ipiSaida","IPI na sa\u00edda","%",{hint:"Cobrado do cliente por fora"})
+    + fldSuf("comissao","Comiss\u00e3o sobre venda","%")
+    + fldSuf("irpjCsll","IRPJ + CSLL sobre o lucro","%",{hint:"Simplifica\u00e7\u00e3o: 15% + adicional 10% + CSLL 9%"})
+    + fldSuf("despDedutiveis","Despesas dedut\u00edveis alocadas","R$",{hint:"Reduzem a base do IRPJ/CSLL, n\u00e3o entram no custo"})
+    + fldSuf("margemAlvo","Margem operacional alvo","%",{hint:"Usada no c\u00e1lculo do pre\u00e7o sugerido"})
+    + '</div>';
+  h += sec("6","Conta e ordem \u2014 par\u00e2metros espec\u00edficos","Usados apenas na aba Conta e ordem.");
+  h += '<div class="grid">'
+    + fld("ufAdquirente","UF do adquirente")
+    + fldSuf("tradingPct","Taxa de servi\u00e7o da trading","% do VA",{hint:"Mercado usual 0,5% a 2,0%"})
+    + fldSuf("tradingFixo","Taxa fixa da trading","R$/cont.",{hint:"Cobrada por cont\u00eainer, multiplicada pela quantidade de volumes"})
+    + fldSuf("icmsImpCO","ICMS-importa\u00e7\u00e3o no estado do adquirente","%")
+    + fld("icmsImpCOCreditavel","ICMS-importa\u00e7\u00e3o \u00e9 credit\u00e1vel?",{options:SN})
+    + fldSuf("icmsVendaCO","ICMS sobre a venda em conta e ordem","%")
+    + fld("tradingPagaCliente","Quem paga a taxa da trading?",
+          {options:[["0","A empresa \u2014 entra no custo"],["1","O cliente, direto \u00e0 trading"]],
+           wide:true,
+           hint:"Pago pelo cliente, a taxa sai do seu custo, da base de impostos e do resultado, e aparece no demonstrativo como valor que ele desembolsa"})
+    + fld("creditarServico","Creditar PIS/COFINS sobre o servi\u00e7o?",{options:SN,hint:"Posi\u00e7\u00e3o discut\u00edvel. Default conservador: n\u00e3o. S\u00f3 vale se a empresa pagar a taxa"})
+    + fld("despesasInclusas","Despesas j\u00e1 inclusas na taxa da trading?",{options:SN,hint:"Sim evita contar despachante e armazenagem duas vezes"})
+    + '</div>';
+  h += '<div class="actions no-print"><button class="btn ghost" id="btnReset">Restaurar valores padr\u00e3o</button></div>';
+  h += '<p class="foot">Os par\u00e2metros ficam salvos neste navegador. Restaurar apaga o que foi digitado.</p>';
+
+  h += sec("7","Backup na nuvem (AWS)","Envia par\u00e2metros, proposta e fornecedores para um endpoint seu na AWS. A credencial da AWS fica na Lambda, nunca aqui: este arquivo \u00e9 leg\u00edvel por qualquer um que o abra.");
+  var SN2 = [["0","Desligado"],["1","Ligado"]];
+  h += '<div class="grid">'
+    + nfld("url","Endere\u00e7o do endpoint","",{wide:true,hint:"URL do API Gateway, sem barra no fim"})
+    + nfld("token","Token de acesso","",{hint:"O mesmo valor configurado na Lambda"})
+    + nfld("empresa","Identificador","",{hint:"Separa as simula\u00e7\u00f5es dentro do bucket"})
+    + '<div class="fld"><label>Backup autom\u00e1tico</label>'
+    + '<select data-k="auto" data-store="nuvem">'
+    + SN2.map(function(o){ return '<option value="'+o[0]+'"'+(String(S.nuvemCfg.auto)===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')
+    + '</select><span class="hint">Envia sozinho ap\u00f3s cada altera\u00e7\u00e3o</span></div>'
+    + nfld("freq","Frequ\u00eancia m\u00ednima","min",{hint:"Intervalo m\u00ednimo entre dois envios"})
+    + '</div>';
+
+  var est = S.nuvem.estado;
+  var rotulo = {enviando:"Enviando\u2026", ok:"Backup enviado", erro:"Falhou", listando:"Consultando\u2026",
+                restaurando:"Restaurando\u2026", vazio:"Nenhum backup encontrado"}[est] || "Nunca enviado";
+  h += '<div class="calcbar" style="border-left-color:'
+    + (est==="erro"?"var(--neg)":est==="ok"?"var(--pos)":"var(--pa)") + '">'
+    + '<span>Situa\u00e7\u00e3o<b class="'+(est==="erro"?"t-neg":est==="ok"?"t-pos":"")+'">'+esc(rotulo)+'</b></span>'
+    + '<span>\u00daltimo envio<b>'+esc(S.nuvem.ultimo||"\u2014")+'</b></span>'
+    + (S.nuvem.detalhe ? '<span>Detalhe<b>'+esc(String(S.nuvem.detalhe).slice(0,60))+'</b></span>' : '')
+    + '</div>';
+  h += '<div class="actions no-print"><button class="btn" data-act="nuvemEnviar">Enviar backup agora</button>'
+    + '<button class="btn alt" data-act="nuvemListar">Ver simula\u00e7\u00f5es salvas</button>'
+    + (S.nuvem.lista ? '<button class="btn ghost" data-act="nuvemFechar">Fechar lista</button>' : '')
+    + '</div>';
+
+  if (S.nuvem.lista){
+    if (!S.nuvem.lista.length){
+      h += '<p class="foot">Nenhuma simula\u00e7\u00e3o salva para este identificador.</p>';
+    } else {
+      h += '<div class="tbl"><div class="h"><span>Arquivo</span><span>Data</span><span>Tamanho</span><span></span></div>';
+      S.nuvem.lista.slice(0,30).forEach(function(b){
+        h += '<div class="row"><span>'+esc(b.arquivo||"")+'</span>'
+          + '<span class="num">'+esc(b.data||"")+'</span>'
+          + '<span class="num">'+(b.tamanho? brl(b.tamanho/1024,0)+" KB" : "\u2014")+'</span>'
+          + '<span class="num"><button class="btn ghost" style="padding:3px 10px;font-size:12px" '
+          + 'data-act="nuvemRestaurar" data-id="'+esc(b.arquivo||"")+'">restaurar</button></span></div>';
+      });
+      h += '</div>';
+    }
+  }
+  h += '<p class="foot">O envio autom\u00e1tico espera a digita\u00e7\u00e3o parar e respeita a frequ\u00eancia m\u00ednima. '
+    + 'Um pacote id\u00eantico ao \u00faltimo n\u00e3o \u00e9 reenviado. O token e o endere\u00e7o n\u00e3o v\u00e3o dentro do backup.</p>';
+  return h;
+}
+
+/* Campo ligado \u00e0 configura\u00e7\u00e3o da nuvem. */
+function nfld(chave, rotulo, sufixo, o){
+  o = o || {};
+  return '<div class="fld'+(o.wide?" wide":"")+'"><label>'+esc(rotulo)+'</label>'
+    + '<span class="in"><input data-k="'+chave+'" data-store="nuvem" value="'+esc(S.nuvemCfg[chave]||"")+'" spellcheck="false">'
+    + (sufixo? '<em>'+esc(sufixo)+'</em>' : '') + '</span>'
+    + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+}
+
+function viewNacionalizacao(c){
+  var co = S.modo === "co", m = M(c), un = u(), p = S.p;
+  var h = head("Custo de nacionaliza\u00e7\u00e3o", ctx(c));
+  h += sec(null, co? "Conta e ordem \u2014 tributos recolhidos pela trading, \u00f4nus econ\u00f4mico do adquirente"
+                   : "Importa\u00e7\u00e3o direta \u2014 em nome pr\u00f3prio, com recursos pr\u00f3prios");
+  h += sec("A","Valor aduaneiro");
+  h += row("FOB total (R$)", money(c.fobBRL), {note:"US$ "+brl(c.fobUSD)+" \u00d7 "+brl(c.ptax,4)});
+  h += row("Frete internacional (R$)", money(c.freteBRL));
+  h += row("Seguro internacional (R$)", money(c.seguroBRL));
+  h += row("Valor aduaneiro \u2014 VA (CIF)", money(c.va), {strong:true, note:"Base do II e do PIS/COFINS-Importa\u00e7\u00e3o"});
+  h += sec("B","Tributos federais e taxas");
+  h += row("II \u2014 Imposto de Importa\u00e7\u00e3o", money(c.ii),
+      {note: c.prefer>0 ? "Al\u00edquota efetiva "+perc(c.iiAliq)+" ap\u00f3s prefer\u00eancia de "+perc(c.prefer,0)+" ("+esc(p.origem)+"). N\u00e3o recuper\u00e1vel"
+                        : "N\u00e3o recuper\u00e1vel \u2014 vira custo"});
+  h += row("IPI importa\u00e7\u00e3o", money(c.ipiImp), {note:"Base = VA + II. Recuper\u00e1vel"});
+  h += row("PIS-Importa\u00e7\u00e3o", money(c.pisImp), {note:"Recuper\u00e1vel"});
+  h += row("COFINS-Importa\u00e7\u00e3o", money(c.cofinsImp), {note:"Recuper\u00e1vel"});
+  h += row("Adicional COFINS-Importa\u00e7\u00e3o", money(c.adicCofins), {note:"N\u00e3o gera cr\u00e9dito \u2014 STF Tema 1047"});
+  h += row("AFRMM", money(c.afrmm));
+  h += row("Taxa Siscomex/DUIMP", money(c.siscomex));
+  h += row("Direito antidumping", money(c.antidumping));
+  h += row("Subtotal federais + taxas", money(c.subFed), {strong:true});
+  h += sec("C","ICMS importa\u00e7\u00e3o", co? "Devido ao estado do adquirente ("+p.ufAdquirente+") \u2014 STF Tema 520."
+                                              : "Calculado por dentro sobre VA + federais.");
+  h += row("Base do ICMS-importa\u00e7\u00e3o (sem gross-up)", money(c.baseIcms));
+  h += row("ICMS-importa\u00e7\u00e3o (por dentro)", money(m.icmsImp), {strong:true});
+  h += row("\u00c9 credit\u00e1vel?", num(co? p.icmsImpCOCreditavel : p.icmsImpCreditavel)===1 ? "Sim \u2014 vira cr\u00e9dito" : "N\u00e3o \u2014 vira custo");
+  h += sec("D","Servi\u00e7o e despesas locais");
+  if (co) h += row("Servi\u00e7o da trading (% \u00d7 VA + fixo por cont\u00eainer)", money(c.co.servicoTrading),
+      {note:"Taxa fixa de " + money(num(p.tradingFixo)) + " \u00d7 " + qty(c.nVol) + " cont\u00eainer(es). Receita da trading \u00e9 o servi\u00e7o \u2014 IN SRF 247/2002"});
+  h += row("Despachante aduaneiro", money(m.despachante));
+  h += row("Armazenagem / THC / capatazia", money(m.armazenagem));
+  h += row("Outras despesas", money(m.outras));
+  h += row("Frete nacional porto \u2192 dep\u00f3sito", money(c.freteNacTotal));
+  h += row("Subtotal", money(m.despLocais), {strong:true});
+  h += sec("E","Custo total e custo l\u00edquido");
+  h += row("Custo total desembolsado (caixa)", money(m.desembolsado), {strong:true});
+  h += row("(\u2212) Cr\u00e9dito IPI-importa\u00e7\u00e3o", money(-c.ipiImp), {sub:true});
+  h += row("(\u2212) Cr\u00e9dito PIS-Importa\u00e7\u00e3o", money(-c.pisImp), {sub:true});
+  h += row("(\u2212) Cr\u00e9dito COFINS-Importa\u00e7\u00e3o", money(-c.cofinsImp), {sub:true});
+  h += row("(\u2212) Cr\u00e9dito ICMS-importa\u00e7\u00e3o", money(-m.credIcms), {sub:true});
+  if (co) h += row("(\u2212) Cr\u00e9dito PIS/COFINS sobre o servi\u00e7o", money(-c.co.credServico), {sub:true});
+  h += row("Custo l\u00edquido da mercadoria (cont\u00e1bil)", money(m.custoLiq), {strong:true, tone:"key", note:"Base de forma\u00e7\u00e3o de pre\u00e7o"});
+  h += sec("F","Custo unit\u00e1rio");
+  h += row("Custo desembolsado por "+un, money(m.custoDesembUnit,4));
+  h += row("Custo l\u00edquido por "+un, money(m.custoLiqUnit,4), {strong:true, tone:"key"});
+  h += row("Custo l\u00edquido por tonelada", money(m.custoLiqTon));
+  h += row("Custo l\u00edquido por cont\u00eainer", money(m.custoLiqVolume));
+  h += '<div class="warn"><b>Base do ICMS</b>A base usada aqui \u00e9 valor aduaneiro mais tributos federais. A LC 87/96, art. 13, V, manda incluir tamb\u00e9m as demais despesas aduaneiras. Confirme com a contabilidade se capatazia, THC e despachante entram na base no estado de desembara\u00e7o.</div>';
+  return h;
+}
+
+function viewVenda(c){
+  var d = c.direta, un = u(), p = S.p;
+  var h = head("Resultado da venda \u2014 importa\u00e7\u00e3o direta", ctx(c));
+  h += sec("A","Receita e valor cobrado do cliente");
+  h += row("Receita bruta de venda (s/ IPI)", money(c.receita));
+  h += row("(+) IPI destacado na sa\u00edda (por fora)", money(c.ipiNF));
+  h += row("Valor total a pagar pelo cliente", money(c.totalCliente), {strong:true, tone:"key"});
+  h += row("Valor por "+un+" com IPI", money(c.qtd? c.totalCliente/c.qtd : 0, 4));
+  h += sec("B","Impostos que reduzem o resultado");
+  h += row("ICMS sobre a venda", money(d.icms));
+  h += row("Base de PIS/COFINS", money(d.basePC), {sub:true, note: c.tema69? "Receita menos o ICMS destacado \u2014 STF Tema 69" : "Receita cheia \u2014 sem a exclus\u00e3o do Tema 69"});
+  h += row("PIS sobre a venda", money(d.pis));
+  h += row("COFINS sobre a venda", money(d.cofins));
+  h += row("Total de impostos sobre a venda", money(d.impostos), {strong:true});
+  h += sec("C","Custos e despesas");
+  h += row("(\u2212) Custo l\u00edquido da mercadoria vendida", money(d.custoLiq));
+  h += row("(\u2212) Comiss\u00e3o sobre venda", money(c.comissao));
+  h += row("(\u2212) Frete de venda", money(c.freteVendaTotal));
+  h += sec("D","Resultado");
+  h += row("Lucro operacional antes do IR (LAIR)", money(d.lair), {strong:true, tone: d.lair>=0?"pos":"neg"});
+  h += row("(\u2212) Despesas dedut\u00edveis da empresa", money(num(p.despDedutiveis)), {sub:true});
+  h += row("Base tribut\u00e1vel IRPJ/CSLL", money(d.base), {sub:true});
+  h += row("(\u2212) IRPJ + CSLL", money(d.ir), {sub:true});
+  h += row("Lucro l\u00edquido da opera\u00e7\u00e3o", money(d.liquido), {strong:true, tone: d.liquido>=0?"pos":"neg"});
+  h += sec("E","Custo unit\u00e1rio de venda (R$/"+un+") ao pre\u00e7o indicado");
+  h += row("Custo de nacionaliza\u00e7\u00e3o l\u00edquido", money(d.custoLiqUnit,4));
+  h += row("(+) ICMS da venda", money(c.qtd? d.icms/c.qtd : 0, 4), {sub:true});
+  h += row("(+) PIS da venda", money(c.qtd? d.pis/c.qtd : 0, 4), {sub:true});
+  h += row("(+) COFINS da venda", money(c.qtd? d.cofins/c.qtd : 0, 4), {sub:true});
+  h += row("(+) Comiss\u00e3o", money(c.qtd? c.comissao/c.qtd : 0, 4), {sub:true});
+  h += row("(+) Frete de venda", money(num(p.freteVenda),4), {sub:true});
+  h += row("Custo unit\u00e1rio de venda", money(d.custoUnitVenda,4), {strong:true});
+  h += row("Pre\u00e7o de venda indicado", money(c.preco,4));
+  h += row("Lucro por unidade antes do IR", money(c.preco - d.custoUnitVenda, 4), {tone: (c.preco-d.custoUnitVenda)>=0?"pos":"neg"});
+  h += sec("F","Apura\u00e7\u00e3o do IPI \u2014 memorando fiscal","O IPI \u00e9 cobrado por fora e \u00e9 neutro: n\u00e3o \u00e9 receita, custo nem despesa.");
+  h += row("IPI d\u00e9bito na sa\u00edda", money(c.ipiNF));
+  h += row("(\u2212) IPI cr\u00e9dito da importa\u00e7\u00e3o", money(-c.ipiImp));
+  h += row("IPI l\u00edquido a recolher", money(Math.max(0, c.ipiLiquido)), {strong:true});
+  h += row("Saldo credor de IPI acumulado", money(c.ipiSaldoCredor),
+      {tone: c.ipiSaldoCredor>0?"neg":"pos", note: c.ipiSaldoCredor>0? "O cr\u00e9dito de IPI da importa\u00e7\u00e3o supera o d\u00e9bito da sa\u00edda. Caixa parado." : "A sa\u00edda absorve todo o cr\u00e9dito de entrada."});
+  h += sec("G","Indicadores");
+  h += row("Margem operacional sobre a receita", perc(d.margemOp));
+  h += row("Margem l\u00edquida sobre a receita", perc(d.margemLiq), {strong:true, tone:"key"});
+  h += row("Lucro l\u00edquido por "+un, money(d.lucroUnit,4));
+  h += row("Lucro l\u00edquido por cont\u00eainer", money(d.lucroVolume));
+  h += row("Markup sobre o custo l\u00edquido", brl(d.markup,4)+"\u00d7");
+  h += row("Ponto de equil\u00edbrio \u2014 pre\u00e7o m\u00ednimo por "+un, money(d.be,4), {strong:true, note:"Piso absoluto. Abaixo disto a opera\u00e7\u00e3o destr\u00f3i valor"});
+  h += row("Pre\u00e7o m\u00ednimo cobrindo os fixos", money(d.beFixos,4));
+  h += row("Saldo credor de ICMS acumulado", money(d.saldoCredorIcms), {tone: d.saldoCredorIcms>0?"neg":""});
+  return h;
+}
+
+function viewContaOrdem(c){
+  var o = c.co, d = c.direta, un = u(), p = S.p;
+  var h = head("Importa\u00e7\u00e3o por conta e ordem", ctx(c));
+  h += sec(null, null, "A empresa \u00e9 o adquirente e dona da mercadoria; a trading \u00e9 importadora de direito e mera prestadora de servi\u00e7o. Mesma carga e mesmo pre\u00e7o da aba Venda. Base legal: IN RFB 1.861/2018; Lei 10.865/2004 art. 18; RIPI art. 9\u00ba, IX; STF Tema 520.");
+  h += sec("A","Custo");
+  h += row("Valor aduaneiro (CIF)", money(c.va));
+  h += row("Tributos federais + taxas", money(c.subFed));
+  h += row("ICMS-importa\u00e7\u00e3o \u2014 estado do adquirente ("+esc(p.ufAdquirente)+")", money(o.icmsImp), {note:"Benef\u00edcio de RO n\u00e3o se aproveita aqui se a empresa n\u00e3o estiver em RO"});
+  h += row("Servi\u00e7o da trading", money(o.servicoTrading));
+  h += row("Despesas locais", money(o.despLocais - o.servicoTrading));
+  h += row("Custo total desembolsado", money(o.desembolsado), {strong:true});
+  h += row("(\u2212) Cr\u00e9ditos IPI, PIS, COFINS, ICMS e servi\u00e7o", money(-(c.ipiImp + c.pisImp + c.cofinsImp + o.credIcms + o.credServico)), {sub:true});
+  h += row("Custo l\u00edquido da mercadoria", money(o.custoLiq), {strong:true, tone:"key"});
+  h += row("Custo l\u00edquido por "+un, money(o.custoLiqUnit,4), {strong:true});
+  h += sec("B","Resultado da venda");
+  h += row("Receita bruta (s/ IPI)", money(c.receita));
+  h += row("Valor total a pagar pelo cliente", money(c.totalCliente), {strong:true, tone:"key"});
+  h += row("ICMS sobre a venda", money(o.icms));
+  h += row("PIS sobre a venda", money(o.pis));
+  h += row("COFINS sobre a venda", money(o.cofins));
+  h += row("(\u2212) Custo l\u00edquido da mercadoria vendida", money(o.custoLiq));
+  h += row("(\u2212) Comiss\u00e3o e frete de venda", money(c.comissao + c.freteVendaTotal));
+  h += row("LAIR \u2014 lucro antes do IR", money(o.lair), {strong:true, tone:o.lair>=0?"pos":"neg"});
+  h += row("(\u2212) IRPJ + CSLL", money(o.ir), {sub:true});
+  h += row("Lucro l\u00edquido da opera\u00e7\u00e3o", money(o.liquido), {strong:true, tone:o.liquido>=0?"pos":"neg"});
+  h += sec("C","Apura\u00e7\u00e3o de ICMS \u2014 memorando","N\u00e3o entra no resultado, mas define o caixa.");
+  h += row("ICMS cr\u00e9dito da importa\u00e7\u00e3o", money(o.credIcms));
+  h += row("ICMS d\u00e9bito na venda", money(o.icms));
+  h += row("ICMS l\u00edquido a recolher", money(o.icms - o.credIcms));
+  h += row("Saldo credor acumulado (caixa parado)", money(o.saldoCredorIcms), {strong:true, tone:o.saldoCredorIcms>0?"neg":"pos", note:"Cr\u00e9dito que a venda n\u00e3o absorve. N\u00e3o \u00e9 perda cont\u00e1bil, mas \u00e9 caixa preso sem prazo de realiza\u00e7\u00e3o"});
+  h += sec("D","Compara\u00e7\u00e3o com a importa\u00e7\u00e3o direta");
+  h += row("\u0394 custo l\u00edquido por "+un, money(o.custoLiqUnit - d.custoLiqUnit, 4), {tone:(o.custoLiqUnit-d.custoLiqUnit)<=0?"pos":"neg", note:"Positivo = conta e ordem \u00e9 mais cara"});
+  h += row("\u0394 LAIR", money(o.lair - d.lair), {tone:(o.lair-d.lair)>=0?"pos":"neg"});
+  h += row("\u0394 lucro l\u00edquido", money(o.liquido - d.liquido), {tone:(o.liquido-d.liquido)>=0?"pos":"neg"});
+  h += row("\u0394 lucro l\u00edquido menos saldo credor (impacto de caixa)", money(o.liquido - d.liquido - o.saldoCredorIcms), {strong:true, tone:(o.liquido-d.liquido-o.saldoCredorIcms)>=0?"pos":"neg"});
+  return h;
+}
+
+function viewPrecoAlvo(c){
+  var un = u(), p = S.p, m = M(c);
+  var aliq = pc(S.modo==="co" ? p.icmsVendaCO : p.icmsVenda);
+  var alvo = num(p.margemAlvo)/100;
+  var sug = c.precoPara(alvo, aliq, m.custoLiq);
+  var margens = [0.05,0.10,0.15,0.20,0.25,0.30,0.35];
+  var h = head("Pre\u00e7o-alvo e pisos de pre\u00e7o", ctx(c));
+  h += sec(null, null, "C\u00e1lculo reverso: a partir do custo l\u00edquido e das al\u00edquotas, qual pre\u00e7o entrega a margem desejada.");
+  h += '<div class="hero"><div class="hero-main">'
+    + '<span class="hero-lb">Pre\u00e7o sugerido para margem operacional de '+perc(alvo,1)+'</span>'
+    + '<strong class="hero-v">'+money(sug,4)+'</strong>'
+    + '<span class="hero-sub">por '+esc(un)+', sem IPI \u00b7 com IPI: '+money(sug*(1+pc(p.ipiSaida)),4)+'</span></div>'
+    + '<div class="hero-side">'
+    + '<div><span>Ponto de equil\u00edbrio</span><strong>'+money(m.be,4)+'</strong></div>'
+    + '<div><span>Piso cobrindo os fixos</span><strong>'+money(m.beFixos,4)+'</strong></div>'
+    + '<div><span>Pre\u00e7o atual praticado</span><strong>'+money(c.preco,4)+'</strong></div>'
+    + '</div></div>';
+  h += sec("1","Pre\u00e7o por margem-alvo","Receita e resultado projetados para a mesma carga.");
+  h += '<div class="tbl"><div class="h"><span>Margem operacional</span><span>Pre\u00e7o por '+esc(un)+'</span><span>Receita total</span><span>Diferen\u00e7a vs. pre\u00e7o atual</span></div>';
+  margens.forEach(function(mg){
+    var pr = c.precoPara(mg, aliq, m.custoLiq);
+    var delta = pr - c.preco;
+    h += '<div class="row'+(Math.abs(mg-alvo)<1e-9?' on':'')+'"><span>'+perc(mg,0)+'</span>'
+      + '<span class="num">'+(pr>0? money(pr,4) : "invi\u00e1vel")+'</span>'
+      + '<span class="num">'+(pr>0? money(pr*c.qtd) : "\u2014")+'</span>'
+      + '<span class="num t-'+(delta>0?"neg":"pos")+'">'+(pr>0? (delta>0?"+":"")+money(delta,4) : "\u2014")+'</span></div>';
+  });
+  h += '</div>';
+  h += '<p class="foot">A margem-alvo entra no denominador junto com ICMS, PIS, COFINS e comiss\u00e3o. Se a soma passar de 100%, o pre\u00e7o fica matematicamente invi\u00e1vel e a linha aparece como tal.</p>';
+  h += sec("2","Resultado ao pre\u00e7o atual");
+  h += row("Pre\u00e7o praticado por "+un, money(c.preco,4));
+  h += row("Custo unit\u00e1rio de venda por "+un, money(m.custoUnitVenda,4));
+  h += row("Margem operacional obtida", perc(m.margemOp), {strong:true, tone:m.margemOp>=alvo?"pos":"neg"});
+  h += row("Dist\u00e2ncia at\u00e9 a margem-alvo", perc(m.margemOp - alvo), {tone:m.margemOp>=alvo?"pos":"neg"});
+  h += row("Folga sobre o ponto de equil\u00edbrio", money(c.preco - m.be, 4), {tone:(c.preco-m.be)>=0?"pos":"neg"});
+  return h;
+}
+
+/* ---------------------- DEMONSTRATIVO ---------------------- */
+function docHTML(c){
+  var p = S.p, pr = S.prop, un = u(), m = M(c);
+  var precoComIpi = c.qtd ? c.totalCliente / c.qtd : 0;
+
+  // taxa da trading: aparece nas duas vers\u00f5es, aberta em total e por unidade
+  var servTrading = (S.modo === "co") ? c.servicoTradingTotal : 0;
+  var temTrading = servTrading > 0;
+  var tradingDoCliente = temTrading && c.tradingCli;      // pago direto pelo cliente
+  var servTradingUn = (temTrading && c.qtd) ? servTrading / c.qtd : 0;
+  var totalOperacao = c.totalCliente + (tradingDoCliente ? 0 : servTrading);
+  var custoUnitTotal = c.qtd ? totalOperacao / c.qtd : 0;
+  var temFreteCli = c.freteClienteTotal > 0;
+  var porForaTotal = c.freteClienteTotal + (tradingDoCliente ? servTrading : 0);
+  var temPorFora = porForaTotal > 0;
+  var postoUnit = custoUnitTotal + (c.qtd ? porForaTotal / c.qtd : 0);
+  var fixoTotal = num(p.tradingFixo) * c.nVol;
+  var pctTotal = servTrading - fixoTotal;
+  var detalheTrading = "";
+  if (temTrading){
+    var partes = [];
+    if (fixoTotal > 0) partes.push(money(num(p.tradingFixo)) + " \u00d7 " + qty(c.nVol) + " cont.");
+    if (pctTotal > 0.005) partes.push(brl(num(p.tradingPct), 2) + "% do valor aduaneiro");
+    if (partes.length) detalheTrading = ' <span style="font-weight:400;color:#5a6a7a">(' + partes.join(" + ") + ')</span>';
+  }
+  var inclui = ["Frete internacional e seguro at\u00e9 o porto de destino",
+    "Imposto de Importa\u00e7\u00e3o, PIS/COFINS-Importa\u00e7\u00e3o, AFRMM e taxa Siscomex",
+    "Desembara\u00e7o aduaneiro, despachante, armazenagem, THC e capatazia",
+    "ICMS destacado na nota fiscal de venda"];
+  if (num(p.freteNacional) > 0) inclui.push("Frete rodovi\u00e1rio do porto at\u00e9 o dep\u00f3sito");
+  if (num(p.freteVenda) > 0) inclui.push("Entrega no endere\u00e7o do cliente");
+  if (num(p.freteCliente) > 0) inclui.push("N\u00c3O inclui o frete do porto at\u00e9 o seu endere\u00e7o, detalhado adiante");
+  if (S.modo === "co" && num(p.tradingPagaCliente) === 1 && num(p.tradingFixo) + num(p.tradingPct) > 0)
+    inclui.push("N\u00c3O inclui a taxa da trading, paga por voc\u00ea diretamente e detalhada adiante");
+
+  var h = '<article class="doc" id="doc">';
+  h += '<header class="doc-h"><div><img src="'+LOGO_DARK+'" alt="EPIC">'
+    + '<strong>' + (S.versaoCliente ? "Proposta comercial" : "Demonstrativo interno da opera\u00e7\u00e3o") + '</strong>'
+    + '<span class="meta">' + esc(pr.emitente) + (pr.emitenteCnpj? " \u00b7 CNPJ " + esc(pr.emitenteCnpj) : "")
+    + '<br>N\u00ba ' + esc(pr.numero) + ' \u00b7 ' + esc(pr.data) + '</span></div>'
+    + '<div class="doc-h-r"><span>Validade</span><b>' + esc(pr.validade) + '</b></div></header>';
+  h += '<div class="doc-id">'
+    + '<div><span>Cliente</span><b>' + (esc(pr.cliente) || "\u2014") + '</b></div>'
+    + '<div><span>CNPJ</span><b>' + (esc(pr.cnpj) || "\u2014") + '</b></div>'
+    + '<div><span>Produto</span><b>' + esc(p.produto) + '</b></div>'
+    + '<div><span>NCM</span><b>' + esc(p.ncm) + '</b></div>'
+    + '<div><span>Quantidade</span><b>' + qty(c.qtd) + ' ' + esc(un) + '</b></div>'
+    + '<div><span>Cont\u00eaineres</span><b>' + qty(c.nVol) + '</b></div>'
+    + '<div><span>Porto de destino</span><b>' + esc(pr.porto) + '</b></div>'
+    + '<div><span>Origem</span><b>' + esc(p.origem) + '</b></div>'
+    + '<div><span>C\u00e2mbio PTAX</span><b>R$ ' + brl(c.ptax, 4) + ' / US$ 1,00</b></div>'
+    + '<div><span>Modalidade</span><b>' + (S.modo === "co" ? "Conta e ordem" : "Importa\u00e7\u00e3o direta") + '</b></div>'
+    + '</div>';
+  h += '<table class="doc-t"><tbody>'
+    + '<tr><td>Pre\u00e7o unit\u00e1rio sem IPI</td><td class="num">' + money(c.preco,4) + ' / ' + esc(un) + '</td></tr>'
+    + '<tr><td>Quantidade</td><td class="num">' + qty(c.qtd) + ' ' + esc(un) + '</td></tr>'
+    + '<tr><td>Valor da mercadoria</td><td class="num">' + money(c.receita) + '</td></tr>'
+    + (temTrading && !tradingDoCliente
+        ? '<tr><td>Taxa de servi\u00e7o da trading' + detalheTrading + '</td><td class="num">' + money(servTrading) + '</td></tr>'
+        : '')
+    + '<tr><td>IPI destacado (' + brl(num(p.ipiSaida),2) + '%)</td><td class="num">' + money(c.ipiNF) + '</td></tr>'
+    + '<tr class="tot"><td>' + (temTrading && !tradingDoCliente ? "Valor total da opera\u00e7\u00e3o" : "Valor total da nota fiscal")
+      + '</td><td class="num">' + money(totalOperacao) + '</td></tr>'
+    + '</tbody></table>';
+
+  // composi\u00e7\u00e3o do custo unit\u00e1rio, somada linha a linha
+  h += '<table class="doc-t doc-unit"><tbody>'
+    + '<tr class="sec"><td colspan="2">Custo unit\u00e1rio final por ' + esc(un) + '</td></tr>'
+    + '<tr><td>Pre\u00e7o unit\u00e1rio com IPI</td><td class="num">' + money(precoComIpi, 4) + '</td></tr>'
+    + (temTrading
+        ? '<tr><td>(+) Taxa da trading, diluída em ' + qty(c.qtd) + ' ' + esc(un) + '</td><td class="num">'
+          + money(servTradingUn, 4) + '</td></tr>'
+        : '')
+    + (temFreteCli
+        ? '<tr><td>(+) Frete do porto at\u00e9 o seu endere\u00e7o, diluído em ' + qty(c.qtd) + ' ' + esc(un) + '</td>'
+          + '<td class="num">' + money(c.freteClienteUnit, 4) + '</td></tr>'
+        : '')
+    + '<tr class="tot"><td>Custo unit\u00e1rio final</td><td class="num">'
+      + money(postoUnit, 4) + ' / ' + esc(un) + '</td></tr>'
+    + '</tbody></table>';
+  if (temPorFora){
+    h += '<table class="doc-t doc-frete"><tbody>'
+      + '<tr class="sec"><td colspan="2">Valores pagos por voc\u00ea diretamente \u2014 fora da nota fiscal</td></tr>';
+    if (tradingDoCliente){
+      h += '<tr><td>Taxa de servi\u00e7o da trading' + detalheTrading + '</td><td class="num">'
+        + money(servTrading) + '</td></tr>'
+        + '<tr class="dil"><td>dilu\u00edda em ' + qty(c.qtd) + ' ' + esc(un) + '</td><td class="num">'
+        + money(servTradingUn, 4) + ' / ' + esc(un) + '</td></tr>';
+    }
+    if (temFreteCli){
+      h += '<tr><td>Frete rodovi\u00e1rio do porto at\u00e9 seu endere\u00e7o, ' + qty(c.nVol) + ' cont\u00eainer(es)</td>'
+        + '<td class="num">' + money(c.freteClienteTotal) + '</td></tr>'
+        + '<tr class="dil"><td>dilu\u00eddo em ' + qty(c.qtd) + ' ' + esc(un) + '</td><td class="num">'
+        + money(c.freteClienteUnit, 4) + ' / ' + esc(un) + '</td></tr>';
+    }
+    h += '<tr><td>Subtotal fora da nota fiscal</td><td class="num">' + money(porForaTotal) + '</td></tr>'
+      + '<tr class="tot"><td>Desembolso total da opera\u00e7\u00e3o</td><td class="num">'
+      + money(c.totalCliente + porForaTotal) + '</td></tr>'
+      + '</tbody></table>';
+    var quem = [];
+    if (tradingDoCliente) quem.push("a taxa da trading");
+    if (temFreteCli) quem.push("o frete rodovi\u00e1rio");
+    h += '<p class="doc-nota"><b>Sem incid\u00eancia de impostos.</b> ' + quem.join(" e ") + ': contratado' + (quem.length > 1 ? "s" : "")
+      + ' e pago' + (quem.length > 1 ? "s" : "") + ' por voc\u00ea diretamente ao prestador. '
+      + 'N\u00e3o \u00e9' + (quem.length > 1 ? "m" : "") + ' faturado' + (quem.length > 1 ? "s" : "")
+      + ' por n\u00f3s, n\u00e3o comp\u00f5e' + (quem.length > 1 ? "m" : "")
+      + ' a base de c\u00e1lculo dos impostos e n\u00e3o entra' + (quem.length > 1 ? "m" : "")
+      + ' no valor da nota fiscal. Est\u00e1' + (quem.length > 1 ? "\u00e3o" : "")
+      + ' aqui, rateado' + (quem.length > 1 ? "s" : "") + ' pela quantidade importada, para voc\u00ea enxergar o desembolso total e o custo final por ' + esc(un) + '.</p>';
+  }
+  h += '<div class="doc-cols"><section><h4>O pre\u00e7o inclui</h4><ul>'
+    + inclui.map(function(i){ return '<li>'+esc(i)+'</li>'; }).join('') + '</ul></section>'
+    + '<section><h4>Condi\u00e7\u00f5es</h4>'
+    + '<p><b>Prazo de entrega</b><br>' + esc(pr.prazo) + '</p>'
+    + '<p><b>Pagamento</b><br>' + esc(pr.pagamento) + '</p>'
+    + '<p><b>ICMS na venda</b><br>' + brl(num(S.modo==="co"? p.icmsVendaCO : p.icmsVenda),2) + '% destacado na nota fiscal</p>'
+    + (pr.contato? '<p><b>Contato</b><br>'+esc(pr.contato)+'</p>' : '')
+    + '</section></div>';
+  if (!S.versaoCliente){
+    var q = c.qtd || 1;
+    var un_ = esc(un);
+    function ln(rot, total, porUn, o){
+      o = o || {};
+      var cls = o.tot ? ' class="tot"' : (o.sub ? ' class="sub"' : '');
+      return '<tr' + cls + '><td>' + esc(rot) + '</td>'
+        + '<td class="num">' + (total === null ? "" : money(total)) + '</td>'
+        + '<td class="num">' + (porUn === null ? "" : money(porUn, 4)) + '</td></tr>';
+    }
+    function sec_(rot){
+      return '<tr class="sec"><td colspan="3">' + esc(rot) + '</td></tr>';
+    }
+    var credTotal = c.ipiImp + c.pisImp + c.cofinsImp + m.credIcms + (m.credServico || 0);
+
+    h += '<div class="doc-int"><h4>Resultado da opera\u00e7\u00e3o \u2014 uso interno</h4>';
+    h += '<table class="doc-t doc-det"><thead><tr><th>Composi\u00e7\u00e3o</th>'
+      + '<th class="num">Total</th><th class="num">Por ' + un_ + '</th></tr></thead><tbody>';
+
+    h += sec_("A. Valor aduaneiro \u00b7 c\u00e2mbio PTAX R$ " + brl(c.ptax, 4) + " / US$ 1,00");
+    h += '<tr class="sub"><td>FOB em d\u00f3lar</td><td class="num">US$ ' + brl(c.fobUSD)
+       + '</td><td class="num">US$ ' + brl(c.qtd ? c.fobUSD / c.qtd : 0, 4) + '</td></tr>';
+    h += ln("FOB convertido", c.fobBRL, c.fobBRL / q, {sub:true});
+    h += '<tr class="sub"><td>Frete internacional em d\u00f3lar</td><td class="num">US$ '
+       + brl(num(p.freteIntl) * c.nVol) + '</td><td class="num">US$ '
+       + brl(c.qtd ? (num(p.freteIntl) * c.nVol) / c.qtd : 0, 4) + '</td></tr>';
+    h += ln("Frete internacional convertido", c.freteBRL, c.freteBRL / q, {sub:true});
+    h += ln("Seguro internacional", c.seguroBRL, c.seguroBRL / q, {sub:true});
+    h += ln("Valor aduaneiro (CIF)", c.va, c.va / q, {tot:true});
+    h += ln("Sensibilidade: cada R$ 0,10 de c\u00e2mbio move o CIF em",
+            c.ptax ? c.va * (0.10 / c.ptax) : 0,
+            (c.ptax && q) ? (c.va * (0.10 / c.ptax)) / q : 0, {sub:true});
+
+    h += sec_("B. Tributos de importa\u00e7\u00e3o e taxas");
+    h += ln("Imposto de Importa\u00e7\u00e3o" + (c.prefer > 0 ? " (prefer\u00eancia de " + perc(c.prefer,0) + ")" : ""),
+            c.ii, c.ii / q, {sub:true});
+    h += ln("IPI importa\u00e7\u00e3o", c.ipiImp, c.ipiImp / q, {sub:true});
+    h += ln("PIS-Importa\u00e7\u00e3o", c.pisImp, c.pisImp / q, {sub:true});
+    h += ln("COFINS-Importa\u00e7\u00e3o", c.cofinsImp, c.cofinsImp / q, {sub:true});
+    h += ln("Adicional COFINS-Importa\u00e7\u00e3o", c.adicCofins, c.adicCofins / q, {sub:true});
+    h += ln("AFRMM", c.afrmm, c.afrmm / q, {sub:true});
+    h += ln("Taxa Siscomex/DUIMP", c.siscomex, c.siscomex / q, {sub:true});
+    h += ln("Direito antidumping", c.antidumping, c.antidumping / q, {sub:true});
+    h += ln("ICMS-importa\u00e7\u00e3o", m.icmsImp, m.icmsImp / q, {sub:true});
+    h += ln("Subtotal de tributos", c.subFed + m.icmsImp, (c.subFed + m.icmsImp) / q, {tot:true});
+
+    h += sec_("C. Despesas locais");
+    if (temTrading && !tradingDoCliente){
+      h += ln("Taxa de servi\u00e7o da trading", servTrading, servTradingUn, {sub:true});
+      h += ln("Demais despesas locais", m.despLocais - servTrading, (m.despLocais - servTrading) / q, {sub:true});
+    } else {
+      h += ln("Despachante aduaneiro", m.despachante, m.despachante / q, {sub:true});
+      h += ln("Armazenagem, THC e capatazia", m.armazenagem, m.armazenagem / q, {sub:true});
+      h += ln("Outras despesas", m.outras, m.outras / q, {sub:true});
+      h += ln("Frete nacional porto \u2192 dep\u00f3sito", c.freteNacTotal, c.freteNacTotal / q, {sub:true});
+    }
+    h += ln("Subtotal de despesas", m.despLocais, m.despLocais / q, {tot:true});
+
+    h += sec_("D. Cr\u00e9ditos tribut\u00e1rios recuper\u00e1veis");
+    h += ln("Cr\u00e9dito de IPI-importa\u00e7\u00e3o", -c.ipiImp, -c.ipiImp / q, {sub:true});
+    h += ln("Cr\u00e9dito de PIS-Importa\u00e7\u00e3o", -c.pisImp, -c.pisImp / q, {sub:true});
+    h += ln("Cr\u00e9dito de COFINS-Importa\u00e7\u00e3o", -c.cofinsImp, -c.cofinsImp / q, {sub:true});
+    h += ln("Cr\u00e9dito de ICMS-importa\u00e7\u00e3o", -m.credIcms, -m.credIcms / q, {sub:true});
+    if (m.credServico) h += ln("Cr\u00e9dito de PIS/COFINS sobre o servi\u00e7o", -m.credServico, -m.credServico / q, {sub:true});
+    h += ln("Total de cr\u00e9ditos", -credTotal, -credTotal / q, {tot:true});
+
+    h += sec_("E. Custo");
+    h += ln("Custo total desembolsado (caixa)", m.desembolsado, m.desembolsado / q, {sub:true});
+    h += ln("Custo l\u00edquido da mercadoria", m.custoLiq, m.custoLiqUnit, {tot:true});
+    h += ln("Custo l\u00edquido por tonelada", c.peso ? m.custoLiq / c.peso : 0, null, {sub:true});
+    h += ln("Custo l\u00edquido por cont\u00eainer", m.custoLiqVolume, null, {sub:true});
+
+    h += sec_("F. Venda");
+    h += ln("Receita bruta (sem IPI)", c.receita, c.preco, {sub:true});
+    h += ln("ICMS sobre a venda", -m.icms, -m.icms / q, {sub:true});
+    h += ln("PIS sobre a venda", -m.pis, -m.pis / q, {sub:true});
+    h += ln("COFINS sobre a venda", -m.cofins, -m.cofins / q, {sub:true});
+    h += ln("Comiss\u00e3o sobre venda", -c.comissao, -c.comissao / q, {sub:true});
+    h += ln("Frete de venda", -c.freteVendaTotal, -c.freteVendaTotal / q, {sub:true});
+    h += ln("Custo l\u00edquido da mercadoria vendida", -m.custoLiq, -m.custoLiqUnit, {sub:true});
+
+    h += sec_("G. Resultado");
+    h += ln("LAIR \u2014 lucro antes do IR", m.lair, m.lair / q, {tot:true});
+    h += ln("Despesas dedut\u00edveis alocadas", -num(p.despDedutiveis), -num(p.despDedutiveis) / q, {sub:true});
+    h += ln("IRPJ + CSLL", -m.ir, -m.ir / q, {sub:true});
+    h += ln("Lucro l\u00edquido da opera\u00e7\u00e3o", m.liquido, m.lucroUnit, {tot:true});
+
+    if (temTrading && !tradingDoCliente){
+      h += sec_("H. Valor total da opera\u00e7\u00e3o");
+      h += ln("Valor da nota fiscal, com IPI", c.totalCliente, precoComIpi, {sub:true});
+      h += ln("Taxa da trading, paga pela empresa", servTrading, servTradingUn, {sub:true});
+      h += ln("Total com IPI e taxa da trading", totalOperacao, custoUnitTotal, {tot:true});
+    }
+    if (temPorFora){
+      h += sec_((temTrading && !tradingDoCliente ? "I" : "H")
+                + ". Pago pelo cliente diretamente \u2014 fora do resultado e da base de impostos");
+      if (tradingDoCliente)
+        h += ln("Taxa de servi\u00e7o da trading", servTrading, servTradingUn, {sub:true});
+      if (temFreteCli)
+        h += ln("Frete porto \u2192 cliente, " + qty(c.nVol) + " cont\u00eainer(es)",
+                c.freteClienteTotal, c.freteClienteUnit, {sub:true});
+      h += ln("Subtotal fora da nota fiscal", porForaTotal, c.qtd ? porForaTotal / c.qtd : 0, {sub:true});
+      h += ln("Desembolso total do cliente", c.totalCliente + porForaTotal, postoUnit, {tot:true});
+    }
+    h += '</tbody></table>';
+
+    var letra = (temTrading && !tradingDoCliente) ? (temPorFora ? "J" : "I") : (temPorFora ? "I" : "H");
+    h += '<table class="doc-t doc-det" style="margin-top:14px"><tbody>';
+    h += sec_(letra + ". Custo unit\u00e1rio final para o cliente");
+    h += ln("Pre\u00e7o unit\u00e1rio com IPI", null, precoComIpi, {sub:true});
+    if (temTrading) h += ln("(+) Taxa da trading dilu\u00edda em " + qty(c.qtd) + " " + un_, servTrading, servTradingUn, {sub:true});
+    if (temFreteCli) h += ln("(+) Frete dilu\u00eddo em " + qty(c.qtd) + " " + un_, c.freteClienteTotal, c.freteClienteUnit, {sub:true});
+    h += ln("Desembolso total do cliente e custo unit\u00e1rio final",
+            c.totalCliente + porForaTotal, postoUnit, {tot:true});
+    h += '</tbody></table>';
+
+    h += '<table class="doc-t doc-ind"><tbody>'
+      + '<tr><td>Margem operacional sobre a receita</td><td class="num">' + perc(m.margemOp) + '</td>'
+      + '<td>Margem l\u00edquida</td><td class="num">' + perc(m.margemLiq) + '</td></tr>'
+      + '<tr><td>Markup sobre o custo l\u00edquido</td><td class="num">' + brl(m.markup,4) + '\u00d7</td>'
+      + '<td>Ponto de equil\u00edbrio por ' + un_ + '</td><td class="num">' + money(m.be,4) + '</td></tr>'
+      + '<tr><td>Lucro l\u00edquido por cont\u00eainer</td><td class="num">' + money(m.lucroVolume) + '</td>'
+      + '<td>Pre\u00e7o m\u00ednimo cobrindo os fixos</td><td class="num">' + money(m.beFixos,4) + '</td></tr>'
+      + '<tr><td>Saldo credor de ICMS</td><td class="num">' + money(m.saldoCredorIcms) + '</td>'
+      + '<td>Saldo credor de IPI</td><td class="num">' + money(c.ipiSaldoCredor) + '</td></tr>'
+      + '</tbody></table>';
+
+    h += '<p class="foot">Comparativo: lucro l\u00edquido em importa\u00e7\u00e3o direta ' + money(c.direta.liquido)
+      + ' \u00b7 em conta e ordem ' + money(c.co.liquido)
+      + ' \u00b7 diferen\u00e7a ' + money(c.co.liquido - c.direta.liquido) + '.</p></div>';
+  }
+
+  if (pr.obs) h += '<p class="doc-obs">' + esc(pr.obs) + '</p>';
+  h += '<footer class="doc-f"><p style="float:right;font-size:9px;color:#9aa4ae">v' + VERSAO + '</p><p>Pre\u00e7os calculados com a taxa de c\u00e2mbio PTAX de R$ ' + brl(c.ptax, 4) + ' por US$ 1,00. Proposta sujeita \u00e0 confirma\u00e7\u00e3o de disponibilidade e \u00e0 varia\u00e7\u00e3o cambial at\u00e9 a data do fechamento. Tributos calculados com a legisla\u00e7\u00e3o vigente na data desta proposta; altera\u00e7\u00f5es de al\u00edquota, c\u00e2mbio ou frete internacional podem exigir revis\u00e3o de pre\u00e7o.</p>'
+    + '<div class="doc-sign"><span class="line"></span><b>Assinatura e carimbo</b></div></footer></article>';
+  return h;
+}
+
+function viewDemonstrativo(c){
+  var h = head("Demonstrativo da opera\u00e7\u00e3o", ctx(c));
+  h += '<div class="dem-ctl no-print">';
+  h += sec(null, null, "Preencha os dados comerciais e gere o documento. A vers\u00e3o do cliente mostra apenas pre\u00e7o, tributos destacados e condi\u00e7\u00f5es; a vers\u00e3o interna acrescenta custo, margem e comparativo de modalidades.");
+  h += '<div class="grid">'
+    + pfld("cliente","Cliente",true) + pfld("cnpj","CNPJ")
+    + pfld("numero","Proposta n\u00ba", false,
+           jaEmitida(S.prop.numero) ? "J\u00e1 emitida \u2014 use Nova proposta para o pr\u00f3ximo n\u00famero"
+                                    : "Pr\u00f3ximo da sequ\u00eancia, ainda n\u00e3o emitido")
+    + pfld("data","Data", false, "Preenchida com a data de hoje")
+    + pfld("validade","Validade da proposta") + pfld("porto","Porto de destino")
+    + pfld("emitente","Raz\u00e3o social do emitente",true)
+    + pfld("emitenteCnpj","CNPJ do emitente") + pfld("contato","Contato comercial")
+    + pfld("prazo","Prazo de entrega",true)
+    + pfld("pagamento","Condi\u00e7\u00f5es de pagamento",true)
+    + pfld("obs","Observa\u00e7\u00f5es",true)
+    + '</div>';
+  var taxaInformada = num(S.p.tradingFixo) > 0 || num(S.p.tradingPct) > 0;
+  if (taxaInformada && S.modo === "direta"){
+    h += '<div class="warn"><b>A taxa da trading n\u00e3o entra nesta modalidade</b>'
+      + 'Voc\u00ea informou taxa de trading nos par\u00e2metros, mas o demonstrativo est\u00e1 em '
+      + '<b>Importa\u00e7\u00e3o direta</b>, onde n\u00e3o h\u00e1 trading e o valor \u00e9 zero. '
+      + 'Troque para <b>Conta e ordem</b> no seletor do topo da tela para que a taxa apare\u00e7a no documento.'
+      + '<div class="actions" style="margin-top:10px"><button class="btn alt" data-act="irContaOrdem">'
+      + 'Mudar para conta e ordem</button></div></div>';
+  }
+  var nCli = contarDoCliente(S.prop.cliente);
+  h += '<div class="calcbar" style="margin-top:14px">'
+    + '<span>Proposta<b>' + esc(S.prop.numero || "\u2014") + '</b></span>'
+    + '<span>Data<b>' + esc(S.prop.data) + '</b></span>'
+    + '<span>Situa\u00e7\u00e3o<b>' + (jaEmitida(S.prop.numero) ? "emitida" : "em aberto") + '</b></span>'
+    + '<span>Emitidas no ano<b>' + S.num.seq + '</b></span>'
+    + (S.prop.cliente ? '<span>Para este cliente<b>' + nCli + '</b></span>' : '')
+    + '</div>';
+  h += '<div class="actions no-print">'
+    + '<button class="btn alt" data-act="novaProposta">Nova proposta</button>'
+    + (S.num.historico.length
+        ? '<button class="btn ghost" data-act="verHistorico">'
+          + (S.verHistorico ? "Ocultar" : "Ver") + ' hist\u00f3rico (' + S.num.historico.length + ')</button>'
+        : '')
+    + '</div>';
+
+  if (S.verHistorico && S.num.historico.length){
+    h += '<div class="tbl"><div class="h"><span>N\u00famero</span><span>Cliente</span>'
+      + '<span>Data</span><span>Valor</span></div>';
+    S.num.historico.slice(0, 30).forEach(function(x){
+      h += '<div class="row"><span>' + esc(x.numero) + '</span>'
+        + '<span>' + esc(x.cliente) + '</span>'
+        + '<span class="num">' + esc(x.data) + '</span>'
+        + '<span class="num">' + esc(x.valor) + '</span></div>';
+    });
+    h += '</div>';
+    h += '<p class="foot">Hist\u00f3rico gravado neste navegador. Ele s\u00f3 registra o que foi gerado em PDF, '
+      + 'ent\u00e3o simula\u00e7\u00e3o de rascunho n\u00e3o consome n\u00famero.</p>';
+  }
+
+  h += '<div class="actions">'
+    + '<div class="switch" id="verSwitch">'
+    + '<button data-ver="cliente" class="'+(S.versaoCliente?"on":"")+'">Vers\u00e3o do cliente</button>'
+    + '<button data-ver="interna" class="'+(!S.versaoCliente?"on":"")+'">Vers\u00e3o interna</button></div>'
+    + '<button class="btn" data-act="pdfCliente">Salvar em PDF \u2014 vers\u00e3o do cliente</button>'
+    + '<button class="btn alt" data-act="pdfInterna">Salvar em PDF \u2014 vers\u00e3o interna</button>'
+    + '<button class="btn alt" id="btnCopy">Copiar como texto</button>'
+    + '</div>';
+  h += '<p class="foot">O bot\u00e3o abre a caixa de impress\u00e3o do navegador. Para gerar o arquivo, escolha '
+    + '<b>Destino</b> ou <b>Impressora</b> e selecione <b>Salvar como PDF</b>. O nome do arquivo j\u00e1 vem '
+    + 'preenchido com o n\u00famero da proposta e o nome do cliente.</p>';
+  h += '<p class="foot" id="copyMsg"></p>';
+  h += '</div>';
+  h += docHTML(c);
+  return h;
+}
+function storeOf(nome){
+  if (nome === "prop") return S.prop;
+  if (nome === "forn") return S.forn[S.fornAtivo];
+  if (nome === "nuvem") return S.nuvemCfg;
+  return S.p;
+}
+
+/* Campo ligado ao fornecedor em edicao. */
+function ffld(key, label, suffix, o){
+  o = o || {};
+  var f = S.forn[S.fornAtivo];
+  if (o.texto){
+    return '<div class="fld'+(o.wide?" wide":"")+'"><label>'+esc(label)+'</label>'
+      + '<span class="in"><input data-k="'+key+'" data-store="forn" value="'+esc(f[key])+'" spellcheck="false"></span>'
+      + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+  }
+  if (o.options){
+    return '<div class="fld'+(o.wide?" wide":"")+'"><label>'+esc(label)+'</label>'
+      + '<select data-k="'+key+'" data-store="forn">'
+      + o.options.map(function(op){
+          return '<option value="'+esc(op[0])+'"'+(String(f[key])===String(op[0])?" selected":"")+'>'+esc(op[1])+'</option>';
+        }).join('')
+      + '</select>'
+      + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+  }
+  var dec = (o.dec === undefined) ? (NUMF[key] === undefined ? 2 : NUMF[key]) : o.dec;
+  return '<div class="fld'+(o.wide?" wide":"")+'"><label>'+esc(label)+'</label>'
+    + '<span class="in"><input data-k="'+key+'" data-store="forn" data-num="'+dec+'" inputmode="decimal" value="'
+    + esc(fmtNum(f[key], dec)) + '" spellcheck="false">'
+    + (suffix? '<em>'+esc(suffix)+'</em>' : '') + '</span>'
+    + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
+}
+
+function pfld(key, label, wide, extra){
+  return '<div class="fld'+(wide?" wide":"")+'"><label>'+esc(label)+'</label>'
+    + '<span class="in"><input data-k="'+key+'" data-store="prop"'
+    + (key === "cliente" ? ' id="campoCliente"' : '')
+    + ' value="'+esc(S.prop[key])+'" spellcheck="false"></span>'
+    + (extra ? '<span class="hint">'+esc(extra)+'</span>' : '') + '</div>';
+}
+
+function viewFornecedores(c){
+  var SN = [["1","Sim"],["0","N\u00e3o"]];
+  var un = u(), ativo = S.fornAtivo;
+  var ids = ["A","B","C"];
+  var res = {};
+  ids.forEach(function(id){
+    var cc = compute(paramsForn(id));
+    res[id] = { c: cc, m: (S.modo === "direta" ? cc.direta : cc.co), nome: S.forn[id].nome || ("Fornecedor " + id) };
+  });
+
+  // menor custo liquido por unidade vence
+  var melhor = ids[0];
+  ids.forEach(function(id){ if (res[id].m.custoLiqUnit < res[melhor].m.custoLiqUnit) melhor = id; });
+  var piores = ids.filter(function(id){ return id !== melhor; });
+
+  var h = head("Comparativo de fornecedores", ctx(c));
+  h += sec(null, null, "Tr\u00eas cen\u00e1rios de importa\u00e7\u00e3o com todas as vari\u00e1veis abertas. O pre\u00e7o de venda, as al\u00edquotas da sa\u00edda e o IRPJ vêm da aba Par\u00e2metros e s\u00e3o iguais nos tr\u00eas, porque o produto entregue ao cliente \u00e9 o mesmo. Modalidade em uso: " + (S.modo === "direta" ? "importa\u00e7\u00e3o direta" : "conta e ordem") + ".");
+
+  // ---- veredito ----
+  var mB = res[melhor], dif1 = res[piores[0]].m.custoLiqUnit - mB.m.custoLiqUnit,
+      dif2 = res[piores[1]].m.custoLiqUnit - mB.m.custoLiqUnit;
+  h += '<div class="hero"><div class="hero-main">'
+    + '<span class="hero-lb">Menor custo l\u00edquido por ' + esc(un) + '</span>'
+    + '<strong class="hero-v">' + esc(mB.nome) + '</strong>'
+    + '<span class="hero-sub">' + money(mB.m.custoLiqUnit, 4) + ' por ' + esc(un)
+    + ' \u00b7 ' + money(mB.m.custoLiq) + ' na opera\u00e7\u00e3o inteira</span></div>'
+    + '<div class="hero-side">'
+    + '<div><span>vs. ' + esc(res[piores[0]].nome) + '</span><strong>' + money(dif1, 4) + ' / ' + esc(un) + '</strong></div>'
+    + '<div><span>vs. ' + esc(res[piores[1]].nome) + '</span><strong>' + money(dif2, 4) + ' / ' + esc(un) + '</strong></div>'
+    + '<div><span>Lucro l\u00edquido no melhor</span><strong>' + money(mB.m.liquido) + '</strong></div>'
+    + '</div></div>';
+
+  // ---- tabela comparativa ----
+  /* menorMelhor: true = menor vence, false = maior vence, null = nao marca.
+     Linhas que crescem junto com o volume ficam neutras: mais quantidade nao
+     significa melhor negocio, e marcar la confundiria a leitura. */
+  function linha(rot, fn, menorMelhor, nota){
+    var vals = ids.map(function(id){ return fn(res[id].c, res[id].m); });
+    var alvo = (menorMelhor === null) ? null
+             : (menorMelhor ? Math.min.apply(null, vals) : Math.max.apply(null, vals));
+    var out = '<div class="row"><span>' + esc(rot) + (nota ? ' <em style="color:#5a6a7a;font-style:normal">' + esc(nota) + '</em>' : '') + '</span>';
+    vals.forEach(function(v){
+      var win = (alvo !== null && Math.abs(v - alvo) < 1e-9);
+      out += '<span class="num' + (win ? ' best' : '') + '">' + fmtCel(rot, v) + '</span>';
+    });
+    return out + '</div>';
+  }
+  function fmtCel(rot, v){
+    if (rot.indexOf("Margem") === 0) return perc(v);
+    if (rot.indexOf("Quantidade") === 0) return qty(v) + " " + un;
+    if (rot.indexOf("Peso") === 0) return brl(v, 2) + " t";
+    if (rot.indexOf("por " + un) > 0 || rot.indexOf("equil\u00edbrio") > 0
+        || rot.indexOf("por tonelada") > 0) return money(v, 4);
+    return money(v);
+  }
+
+  h += sec("1", "Custo de nacionaliza\u00e7\u00e3o");
+  h += '<div class="tbl"><div class="h"><span>Indicador</span>'
+    + ids.map(function(id){ return '<span>' + esc(res[id].nome) + '</span>'; }).join('') + '</div>';
+  h += linha("Quantidade total", function(c){ return c.qtd; }, null);
+  h += linha("Peso total", function(c){ return c.peso; }, null);
+  h += linha("Valor aduaneiro (CIF)", function(c){ return c.va; }, null);
+  h += linha("Imposto de Importa\u00e7\u00e3o", function(c){ return c.ii; }, null);
+  h += linha("Demais federais e taxas", function(c){ return c.subFed - c.ii; }, null);
+  h += linha("ICMS-importa\u00e7\u00e3o", function(c, m){ return m.icmsImp; }, null);
+  h += linha("Despesas locais", function(c, m){ return m.despLocais; }, null);
+  h += linha("Custo total desembolsado", function(c, m){ return m.desembolsado; }, null);
+  h += linha("Cr\u00e9ditos recuper\u00e1veis", function(c, m){ return c.ipiImp + c.pisImp + c.cofinsImp + m.credIcms + (m.credServico || 0); }, null);
+  h += linha("Custo l\u00edquido da mercadoria", function(c, m){ return m.custoLiq; }, null);
+  h += linha("Custo l\u00edquido por " + un, function(c, m){ return m.custoLiqUnit; }, true);
+  h += linha("Custo l\u00edquido por tonelada", function(c, m){ return m.custoLiqTon; }, true);
+  h += '</div>';
+
+  h += sec("2", "Composi\u00e7\u00e3o do custo por " + un, "Cada componente dividido pela quantidade. \u00c9 aqui que d\u00e1 para comparar variavel por variavel, sem o efeito do volume de cada carga.");
+  h += '<div class="tbl"><div class="h"><span>Componente</span>'
+    + ids.map(function(id){ return '<span>' + esc(res[id].nome) + '</span>'; }).join('') + '</div>';
+  function porUn(fn){ return function(c, m){ return c.qtd ? fn(c, m) / c.qtd : 0; }; }
+  h += linha("FOB por " + un, porUn(function(c){ return c.fobBRL; }), true);
+  h += linha("Frete internacional por " + un, porUn(function(c){ return c.freteBRL; }), true);
+  h += linha("Seguro por " + un, porUn(function(c){ return c.seguroBRL; }), true);
+  h += linha("II por " + un, porUn(function(c){ return c.ii; }), true);
+  h += linha("Antidumping por " + un, porUn(function(c){ return c.antidumping; }), true);
+  h += linha("Demais federais por " + un, porUn(function(c){ return c.subFed - c.ii - c.antidumping; }), true);
+  h += linha("ICMS-importa\u00e7\u00e3o por " + un, porUn(function(c, m){ return m.icmsImp; }), true);
+  h += linha("Despesas locais por " + un, porUn(function(c, m){ return m.despLocais; }), true);
+  h += linha("Cr\u00e9ditos por " + un, porUn(function(c, m){ return -(c.ipiImp + c.pisImp + c.cofinsImp + m.credIcms + (m.credServico || 0)); }), false);
+  h += linha("Custo l\u00edquido por " + un, function(c, m){ return m.custoLiqUnit; }, true);
+  h += '</div>';
+
+  h += sec("3", "Resultado ao pre\u00e7o de venda de " + money(c.preco, 4) + " por " + un);
+  h += '<div class="tbl"><div class="h"><span>Indicador</span>'
+    + ids.map(function(id){ return '<span>' + esc(res[id].nome) + '</span>'; }).join('') + '</div>';
+  h += linha("Receita bruta", function(c){ return c.receita; }, null);
+  h += linha("Impostos sobre a venda", function(c, m){ return m.impostos; }, null);
+  h += linha("LAIR", function(c, m){ return m.lair; }, false);
+  h += linha("Lucro l\u00edquido", function(c, m){ return m.liquido; }, false);
+  h += linha("Margem l\u00edquida", function(c, m){ return m.margemLiq; }, false);
+  h += linha("Ponto de equil\u00edbrio por " + un, function(c, m){ return m.be; }, true);
+  h += linha("Saldo credor de ICMS", function(c, m){ return m.saldoCredorIcms; }, true);
+  h += '</div>';
+  h += '<p class="foot">Verde marca o melhor n\u00famero de cada linha. Quantidades diferentes entre fornecedores s\u00e3o normais: por isso a compara\u00e7\u00e3o que decide \u00e9 o custo l\u00edquido por ' + esc(un) + ', n\u00e3o o total da opera\u00e7\u00e3o.</p>';
+
+  // ---- editor ----
+  h += sec("4", "Vari\u00e1veis de cada fornecedor", "Escolha o fornecedor e edite. Cada um tem seu pr\u00f3prio c\u00e2mbio, frete, tributos e despesas.");
+  h += '<div class="actions no-print"><div class="switch" id="fornSwitch">'
+    + ids.map(function(id){
+        return '<button data-forn="' + id + '"' + (ativo === id ? ' class="on"' : '') + '>' + esc(res[id].nome) + '</button>'; }).join('')
+    + '</div>'
+    + '<button class="btn alt" data-act="fornCopiar">Copiar dos Par\u00e2metros</button>'
+    + '<button class="btn alt" data-act="fornAplicar">Aplicar aos Par\u00e2metros</button></div>';
+
+  h += sec(null, "Identifica\u00e7\u00e3o e carga");
+  h += '<div class="grid">'
+    + ffld("nome", "Nome do fornecedor", null, {texto:true, wide:true})
+    + ffld("origem", "Pa\u00eds de origem", null, {texto:true})
+    + ffld("preferencia", "Prefer\u00eancia tarif\u00e1ria do acordo", "% do II", {hint:"100 = II zerado com certificado de origem"})
+    + ffld("ptax", "C\u00e2mbio PTAX", "R$/US$")
+    + ffld("nVolumes", "N\u00ba de cont\u00eaineres / volumes", "")
+    + ffld("qtdPorVolume", "Quantidade por volume (" + un + ")", "")
+    + ffld("pesoPorVolume", "Peso por volume", "t")
+    + ffld("fobUnit", "FOB por " + un, "US$")
+    + '</div>';
+  h += sec(null, "Fretes e seguro");
+  h += '<div class="grid">'
+    + ffld("freteIntl", "Frete internacional por cont\u00eainer", "US$")
+    + ffld("seguroPct", "Seguro internacional", "% do FOB")
+    + ffld("freteNacional", "Frete nacional porto \u2192 dep\u00f3sito", "R$/cont.")
+    + '</div>';
+  h += sec(null, "Tributos de nacionaliza\u00e7\u00e3o");
+  h += '<div class="grid">'
+    + ffld("ii", "II \u2014 Imposto de Importa\u00e7\u00e3o", "%")
+    + ffld("ipiImp", "IPI importa\u00e7\u00e3o", "%")
+    + ffld("pisImp", "PIS-Importa\u00e7\u00e3o", "%")
+    + ffld("cofinsImp", "COFINS-Importa\u00e7\u00e3o", "%")
+    + ffld("adicCofins", "Adicional COFINS-Importa\u00e7\u00e3o", "%", {hint:"N\u00e3o gera cr\u00e9dito"})
+    + ffld("afrmm", "AFRMM sobre o frete mar\u00edtimo", "%")
+    + ffld("siscomex", "Taxa Siscomex/DUIMP", "R$")
+    + ffld("antidumping", "Antidumping", "US$/t", {hint:"Varia por produtor e origem"})
+    + ffld("icmsImp", "ICMS-importa\u00e7\u00e3o \u2014 al\u00edquota", "%")
+    + ffld("icmsImpCreditavel", "ICMS-importa\u00e7\u00e3o \u00e9 credit\u00e1vel?", null, {options:SN})
+    + '</div>';
+  h += sec(null, "Despesas aduaneiras e locais");
+  h += '<div class="grid">'
+    + ffld("despachante", "Despachante aduaneiro", "R$/import.")
+    + ffld("armazenagem", "Armazenagem / THC / capatazia", "R$/cont.")
+    + ffld("outras", "Outras despesas", "R$/import.")
+    + '</div>';
+  return h;
+}
+
+function viewFontes(c){
+  var itens = [
+    ["Vers\u00e3o deste simulador", "v" + VERSAO + ". Se o n\u00famero aqui n\u00e3o bate com o da vers\u00e3o que voc\u00ea recebeu, o navegador est\u00e1 abrindo um arquivo antigo: baixe de novo e recarregue com Ctrl+Shift+R."],
+    ["Estrutura da carga","Uma importa\u00e7\u00e3o = um produto. Informa-se n\u00ba de cont\u00eaineres, quantidade e peso por cont\u00eainer e FOB por unidade; os totais s\u00e3o calculados. Frete internacional, frete nacional e armazenagem s\u00e3o por cont\u00eainer. Siscomex, despachante e outras despesas s\u00e3o por importa\u00e7\u00e3o."],
+    ["II e prefer\u00eancia de origem","A al\u00edquota cheia vem da TEC do NCM. Acordos de complementa\u00e7\u00e3o econ\u00f4mica podem reduzir ou zerar o II mediante certificado de origem. No ACE 58 (Mercosul\u2013Peru) quase todo o universo tarif\u00e1rio est\u00e1 desgravado, com exce\u00e7\u00e3o de 12 c\u00f3digos de a\u00e7\u00facar, \u00e1lcool, pneus e artefatos t\u00eaxteis. Confirmar o c\u00f3digo e a regra de origem antes de aplicar a prefer\u00eancia."],
+    ["PIS/COFINS-Importa\u00e7\u00e3o","Lei 10.865/2004, art. 8\u00ba. Regra geral 2,10% e 9,65% sobre o valor aduaneiro. Cr\u00e9dito integral no Lucro Real, art. 15."],
+    ["Adicional da COFINS-Importa\u00e7\u00e3o","\u00a721 do art. 8\u00ba, com o cronograma do \u00a721-A: 0,8% em 2025, 0,6% em 2026 e 0,4% em 2027. N\u00e3o gera cr\u00e9dito \u2014 art. 15, \u00a71\u00ba-A, e STF Tema 1047. Verificar se o NCM consta da lista."],
+    ["PIS/COFINS sobre a venda","STF Tema 69 (RE 574.706): o ICMS destacado n\u00e3o comp\u00f5e a base. O simulador aplica a exclus\u00e3o por padr\u00e3o."],
+    ["AFRMM","Lei 14.301/2022 \u2014 8% na navega\u00e7\u00e3o de longo curso, sobre o frete mar\u00edtimo internacional. A n\u00e3o incid\u00eancia para o Norte e Nordeste alcan\u00e7a cabotagem e navega\u00e7\u00e3o interior, n\u00e3o o longo curso."],
+    ["Taxa Siscomex","Valor por DI/DUIMP. Confirmar o n\u00famero de adi\u00e7\u00f5es com o despachante."],
+    ["Antidumping","Aplicado em US$ por tonelada e definido por produtor e origem. A prefer\u00eancia tarif\u00e1ria do acordo n\u00e3o afasta o direito antidumping."],
+    ["ICMS importa\u00e7\u00e3o","LC 87/96, art. 13, V: base formada por valor aduaneiro, II, IPI, IOF, demais despesas aduaneiras e o pr\u00f3prio imposto, por dentro. Confirmar quais despesas locais o estado exige na base."],
+    ["ICMS venda 4%","Resolu\u00e7\u00e3o do Senado 13/2012 \u2014 al\u00edquota interestadual para importado revendido sem industrializa\u00e7\u00e3o. Venda interna usa a al\u00edquota do estado."],
+    ["IPI na revenda","Importador revendedor \u00e9 equiparado a industrial pelo RIPI (Decreto 7.212/2010): credita na entrada e destaca na sa\u00edda. Quando o cr\u00e9dito de entrada supera o d\u00e9bito de sa\u00edda forma-se saldo credor, monitorado na aba Venda."],
+    ["IRPJ/CSLL","Simplifica\u00e7\u00e3o de 15% + adicional de 10% + CSLL 9%. O adicional s\u00f3 incide sobre o que exceder R$ 20 mil por m\u00eas de lucro, ent\u00e3o em opera\u00e7\u00f5es pequenas a al\u00edquota linear superestima o imposto."],
+    ["Taxa da trading","A remunera\u00e7\u00e3o tem duas partes: um percentual sobre o valor aduaneiro, que acompanha o tamanho da carga, e uma taxa fixa por cont\u00eainer, multiplicada pela quantidade de volumes. Confira no contrato se a taxa fixa \u00e9 mesmo por cont\u00eainer ou por processo: em algumas tradings ela \u00e9 por DUIMP, e a\u00ed basta informar o valor total no campo e deixar apenas um volume."],
+    ["Conta e ordem \u2014 enquadramento","IN RFB 1.861/2018. A trading promove o despacho em seu nome, mas a mercadoria \u00e9 do adquirente. N\u00e3o h\u00e1 compra e venda entre as duas, apenas presta\u00e7\u00e3o de servi\u00e7o."],
+    ["Conta e ordem \u2014 PIS/COFINS","IN SRF 247/2002, art. 12, \u00a71\u00ba: a receita bruta da importadora \u00e9 apenas o valor dos servi\u00e7os. Lei 10.865/2004, art. 18: os cr\u00e9ditos de PIS/COFINS-Importa\u00e7\u00e3o s\u00e3o do adquirente."],
+    ["Conta e ordem \u2014 IPI","RIPI art. 9\u00ba, IX: o adquirente equipara-se a estabelecimento industrial. \u00c9 ele quem credita o IPI da importa\u00e7\u00e3o e destaca o IPI na sa\u00edda."],
+    ["Conta e ordem \u2014 ICMS (Tema 520)","STF, ARE 665.134: o sujeito ativo do ICMS-importa\u00e7\u00e3o \u00e9 o estado do destinat\u00e1rio legal. Em conta e ordem cabe ao estado do adquirente, de modo que benef\u00edcio fiscal do estado da trading n\u00e3o se aproveita se o adquirente estiver em outra UF."],
+    ["Saldo credor de ICMS","Quando o ICMS-importa\u00e7\u00e3o \u00e9 pago \u00e0 al\u00edquota interna e a revenda sai a 4% interestadual, o cr\u00e9dito de entrada supera o d\u00e9bito de sa\u00edda e forma saldo credor. N\u00e3o \u00e9 perda cont\u00e1bil, mas \u00e9 caixa imobilizado sem prazo de realiza\u00e7\u00e3o."],
+    ["Dois pisos de pre\u00e7o","Ponto de equil\u00edbrio cobre custo da mercadoria, impostos e vari\u00e1veis. O pre\u00e7o m\u00ednimo cobrindo os fixos inclui as despesas dedut\u00edveis rateadas."],
+    ["O que o modelo n\u00e3o cobre","ICMS-ST, DIFAL em venda para n\u00e3o contribuinte, varia\u00e7\u00e3o cambial entre o pagamento e o registro da DUIMP, custo financeiro do adiantamento, demurrage e ap\u00f3lice calculada sobre CIF \u00d7 110%."],
+    ["Reforma tribut\u00e1ria","LC 214/2025: 2026 \u00e9 ano-teste, com al\u00edquotas de 0,9% de CBS e 0,1% de IBS destacadas nos documentos fiscais e compensadas em PIS/COFINS, sem custo adicional. A estrutura vale para 2026; refazer o modelo a partir de 2027."]
+  ];
+  var h = head("Fontes, premissas e pontos a validar", ctx(c));
+  h += sec(null, null, "Os n\u00fameros carregados s\u00e3o exemplos. Substituir pelos dados reais antes de decidir.");
+  h += '<div class="src">' + itens.map(function(i){
+    return '<div><b>'+esc(i[0])+'</b><p>'+esc(i[1])+'</p></div>'; }).join('') + '</div>';
+  return h;
+}
+
+/* ============================ RENDER ============================ */
+function render(){
+  var boot = document.getElementById("boot");
+  if (boot && boot.parentNode) boot.parentNode.removeChild(boot);
+  var c = compute(S.p);
+  document.getElementById("tabs").innerHTML = TABS.map(function(t){
+    return '<button data-tab="'+t[0]+'" class="'+(S.tab===t[0]?"on":"")+'">'+esc(t[1])+'</button>'; }).join("");
+  var v = { resumo:viewResumo, parametros:viewParametros, nacionalizacao:viewNacionalizacao,
+            venda:viewVenda, contaordem:viewContaOrdem, precoalvo:viewPrecoAlvo,
+            fornecedores:viewFornecedores, demonstrativo:viewDemonstrativo,
+            fontes:viewFontes }[S.tab];
+  document.getElementById("sheet").innerHTML = v(c);
+  var m = M(c), un = u();
+  document.getElementById("kpis").innerHTML =
+      kpi("Custo l\u00edquido / "+un, money(m.custoLiqUnit,4))
+    + kpi("Pre\u00e7o de venda / "+un, money(c.preco,4))
+    + kpi("Margem l\u00edquida", perc(m.margemLiq))
+    + kpi("Lucro l\u00edquido", money(m.liquido))
+    + '<div class="mode">'+(S.modo==="direta"?"Direta":"Conta e ordem")+' \u00b7 v'+VERSAO+'</div>';
+  document.querySelectorAll("#modeSwitch button").forEach(function(b){
+    b.className = (b.getAttribute("data-mode")===S.modo) ? "on" : ""; });
+  save();
+}
+function kpi(l,v){ return '<div><span>'+esc(l)+'</span><strong>'+v+'</strong></div>'; }
+
+/* ============================ EVENTOS ============================ */
+document.addEventListener("click", function(e){
+  var t = e.target.closest ? e.target.closest("button") : null;
+  if (!t) return;
+  if (t.hasAttribute("data-tab")){ S.tab = t.getAttribute("data-tab"); render(); window.scrollTo(0,0); return; }
+  if (t.hasAttribute("data-mode")){ S.modo = t.getAttribute("data-mode"); render(); return; }
+  if (t.hasAttribute("data-ver")){ S.versaoCliente = (t.getAttribute("data-ver")==="cliente"); render(); return; }
+  if (t.hasAttribute("data-forn")){ S.fornAtivo = t.getAttribute("data-forn"); render(); return; }
+  if (t.getAttribute("data-act") === "nuvemEnviar"){ enviarNuvem(true); return; }
+  if (t.getAttribute("data-act") === "nuvemListar"){ listarNuvem(); return; }
+  if (t.getAttribute("data-act") === "nuvemFechar"){ S.nuvem.lista = null; render(); return; }
+  if (t.getAttribute("data-act") === "nuvemRestaurar"){ restaurarNuvem(t.getAttribute("data-id")); return; }
+  if (t.getAttribute("data-act") === "fornCopiar"){
+    var alvo = S.forn[S.fornAtivo];
+    for (var i = 0; i < FORN_KEYS.length; i++){
+      var k = FORN_KEYS[i];
+      if (k !== "nome" && S.p[k] !== undefined) alvo[k] = S.p[k];
+    }
+    render(); return;
+  }
+  if (t.getAttribute("data-act") === "fornAplicar"){
+    if (confirm("Levar as vari\u00e1veis de " + (S.forn[S.fornAtivo].nome || S.fornAtivo) + " para a aba Par\u00e2metros?")){
+      var de = S.forn[S.fornAtivo];
+      for (var j = 0; j < FORN_KEYS.length; j++){
+        var kk = FORN_KEYS[j];
+        if (kk !== "nome" && de[kk] !== undefined) S.p[kk] = de[kk];
+      }
+      S.tab = "parametros"; render(); window.scrollTo(0,0);
+    }
+    return;
+  }
+  if (t.id === "btnReset"){
+    if (confirm("Restaurar todos os par\u00e2metros para os valores padr\u00e3o?")){
+      S.p = Object.assign({}, DEFAULTS); render(); }
+    return; }
+  if (t.getAttribute("data-act") === "irContaOrdem"){ S.modo = "co"; render(); window.scrollTo(0,0); return; }
+  if (t.getAttribute("data-act") === "novaProposta"){
+    S.prop.numero = proximoNumero();
+    S.prop.data = hojeBR();
+    render(); return;
+  }
+  if (t.getAttribute("data-act") === "verHistorico"){ S.verHistorico = !S.verHistorico; render(); return; }
+  if (t.getAttribute("data-act") === "pdfCliente"){ imprimirVersao(true); return; }
+  if (t.getAttribute("data-act") === "pdfInterna"){ imprimirVersao(false); return; }
+  if (t.id === "btnCopy"){ copyDoc(); return; }
+});
+document.addEventListener("input", function(e){
+  var el = e.target;
+  if (!el.hasAttribute || !el.hasAttribute("data-k")) return;
+  var store = storeOf(el.getAttribute("data-store"));
+  var chave = el.getAttribute("data-k");
+  if (el.hasAttribute("data-num")){
+    store[chave] = String(parseField(el.value, parseInt(el.getAttribute("data-num"), 10)));
+  } else {
+    store[chave] = el.value;
+  }
+  if (el.tagName === "SELECT") { render(); return; }
+  // mudou o cliente numa proposta ja emitida: a proxima ganha numero novo
+  if (el.getAttribute("data-store") === "prop" && chave === "cliente" && jaEmitida(S.prop.numero)){
+    S.prop.numero = proximoNumero();
+    render();
+    var campo = document.getElementById("campoCliente");
+    if (campo){ campo.focus(); try{ campo.setSelectionRange(campo.value.length, campo.value.length); }catch(e){} }
+    return;
+  }
+  softRefresh();
+});
+document.addEventListener("blur", function(e){
+  var el = e.target;
+  if (!el.hasAttribute || !el.hasAttribute("data-num")) return;
+  var d = parseInt(el.getAttribute("data-num"), 10);
+  var val = Number(parseField(el.value, d).toFixed(d));   // guarda com a precisao do campo
+  storeOf(el.getAttribute("data-store"))[el.getAttribute("data-k")] = String(val);
+  el.value = val.toLocaleString("pt-BR", {minimumFractionDigits:0, maximumFractionDigits:d});
+  render();
+}, true);
+
+var refreshTimer = null;
+function softRefresh(){
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(function(){
+    var c = compute(S.p), m = M(c), un = u();
+    document.getElementById("kpis").innerHTML =
+        kpi("Custo l\u00edquido / "+un, money(m.custoLiqUnit,4))
+      + kpi("Pre\u00e7o de venda / "+un, money(c.preco,4))
+      + kpi("Margem l\u00edquida", perc(m.margemLiq))
+      + kpi("Lucro l\u00edquido", money(m.liquido))
+      + '<div class="mode">'+(S.modo==="direta"?"Direta":"Conta e ordem")+'</div>';
+    var cb = document.getElementById("calcbar");
+    if (cb){ var box = document.createElement("div"); box.innerHTML = calcbarHTML(c);
+             cb.parentNode.replaceChild(box.firstChild, cb); }
+    if (S.tab === "fornecedores"){
+      var ativo = document.activeElement;
+      var chave = ativo && ativo.getAttribute("data-k");
+      var editando = chave && ativo.getAttribute("data-store") === "forn";
+      var valor = editando ? ativo.value : "";
+      var inicio = editando ? ativo.selectionStart : null;
+      var fim = editando ? ativo.selectionEnd : null;
+      render();
+      if (editando){
+        var novo = document.querySelector('[data-store="forn"][data-k="'+chave+'"]');
+        if (novo){
+          novo.value = valor;
+          novo.focus({preventScroll:true});
+          if (inicio !== null) novo.setSelectionRange(inicio, fim);
+        }
+      }
+      return;
+    }
+    if (S.tab === "demonstrativo"){
+      var old = document.getElementById("doc");
+      if (old){ var wrap = document.createElement("div"); wrap.innerHTML = docHTML(c);
+                old.parentNode.replaceChild(wrap.firstChild, old); }
+    }
+    save();
+  }, 250);
+}
+
+/* ---------------------- IMPRESSAO ---------------------- */
+/* O navegador usa o titulo da pagina como nome do arquivo PDF. */
+function nomeArquivoDoc(){
+  var partes = [S.versaoCliente ? "Proposta" : "Demonstrativo-interno",
+                String(S.prop.numero || "").replace(/[\/\\]/g, "-")];
+  if (S.prop.cliente) partes.push(String(S.prop.cliente).replace(/[^\w\u00C0-\u017F]+/g, "-").slice(0, 40));
+  return partes.filter(Boolean).join("_").replace(/-+/g, "-").replace(/_+/g, "_");
+}
+
+/* Imprime a propria pagina. A folha de estilo de impressao esconde tudo
+   menos o documento. Abrir janela nova era fragil: bloqueador de pop-up
+   cancelava sem avisar. */
+/* Imprime a versao pedida, independentemente da que esta na tela,
+   e devolve a tela ao estado anterior. */
+function imprimirVersao(cliente){
+  var antes = S.versaoCliente;
+  S.versaoCliente = cliente;
+  registrarProposta(compute(S.p));   // consome o n\u00famero: o pr\u00f3ximo ser\u00e1 novo
+  render();
+  printDoc(function(){
+    if (antes !== cliente){ S.versaoCliente = antes; render(); }
+  });
+}
+
+function printDoc(aoTerminar){
+  var titulo = document.title;
+  document.title = nomeArquivoDoc();
+  document.body.classList.add("imprimindo");
+  function restaurar(){
+    document.body.classList.remove("imprimindo");
+    document.title = titulo;
+    if (window.removeEventListener) window.removeEventListener("afterprint", restaurar);
+    if (typeof aoTerminar === "function"){ var fn = aoTerminar; aoTerminar = null; fn(); }
+  }
+  if (window.addEventListener) window.addEventListener("afterprint", restaurar);
+  setTimeout(function(){
+    try { window.print(); } catch(e){}
+    setTimeout(restaurar, 1500);   // navegadores que nao disparam afterprint
+  }, 60);
+}
+
+function copyDoc(){
+  var c = compute(S.p), p = S.p, pr = S.prop, un = u();
+  var linhas = [
+    "PROPOSTA COMERCIAL N\u00ba " + pr.numero,
+    pr.emitente + (pr.emitenteCnpj ? " \u2014 CNPJ " + pr.emitenteCnpj : ""),
+    "Cliente: " + (pr.cliente || "\u2014") + (pr.cnpj ? "   CNPJ: " + pr.cnpj : ""),
+    "Data: " + pr.data + "   Validade: " + pr.validade, "",
+    "Produto: " + p.produto + "   NCM: " + p.ncm + "   Origem: " + p.origem,
+    "C\u00e2mbio PTAX: R$ " + brl(c.ptax, 4) + " por US$ 1,00",
+    "Quantidade: " + qty(c.qtd) + " " + un + " (" + qty(c.nVol) + " cont\u00eainer(es))",
+    "Porto de destino: " + pr.porto, "",
+    "Pre\u00e7o unit\u00e1rio sem IPI: " + money(c.preco,4) + " por " + un,
+    "IPI (" + brl(num(p.ipiSaida),2) + "%): " + money(c.ipiNF),
+    "Pre\u00e7o unit\u00e1rio com IPI: " + money(c.qtd? c.totalCliente/c.qtd : 0, 4)
+  ];
+  var servT = (S.modo === "co" && !c.tradingCli) ? c.co.servicoTrading : 0;
+  var porForaT = c.freteClienteTotal + ((S.modo === "co" && c.tradingCli) ? c.servicoTradingTotal : 0);
+  if (servT > 0){
+    linhas.push("Taxa de servi\u00e7o da trading: " + money(servT));
+    linhas.push("Taxa da trading por " + un + ": " + money(c.qtd ? servT / c.qtd : 0, 4));
+    linhas.push("VALOR TOTAL DA OPERA\u00c7\u00c3O: " + money(c.totalCliente + servT));
+    linhas.push("Custo unit\u00e1rio total, com IPI e taxa: "
+                + money(c.qtd ? (c.totalCliente + servT) / c.qtd : 0, 4) + " por " + un);
+  } else {
+    linhas.push("VALOR TOTAL: " + money(c.totalCliente));
+  }
+  if (porForaT > 0){
+    linhas.push("");
+    linhas.push("PAGO POR VOC\u00ca DIRETAMENTE, FORA DA NOTA FISCAL:");
+    if (S.modo === "co" && c.tradingCli)
+      linhas.push("  Taxa de servi\u00e7o da trading: " + money(c.servicoTradingTotal)
+                  + "  (" + money(c.qtd ? c.servicoTradingTotal / c.qtd : 0, 4) + " por " + un + ")");
+    if (c.freteClienteTotal > 0)
+      linhas.push("  Frete porto \u2192 seu endere\u00e7o: " + money(c.freteClienteTotal)
+                  + "  (" + money(c.freteClienteUnit, 4) + " por " + un + ")");
+    linhas.push("  Subtotal: " + money(porForaT));
+    linhas.push("DESEMBOLSO TOTAL DA OPERA\u00c7\u00c3O: " + money(c.totalCliente + servT + porForaT));
+    linhas.push("Custo total por " + un + " posto no seu endere\u00e7o: "
+                + money(c.qtd ? (c.totalCliente + servT + porForaT) / c.qtd : 0, 4));
+  }
+  linhas.push("");
+  linhas.push("Prazo de entrega: " + pr.prazo);
+  linhas.push("Condi\u00e7\u00f5es de pagamento: " + pr.pagamento);
+  if (pr.contato) linhas.push("Contato: " + pr.contato);
+  if (pr.obs) linhas.push("", "Observa\u00e7\u00f5es: " + pr.obs);
+  var txt = linhas.join("\n");
+  var msg = document.getElementById("copyMsg");
+  function ok(){ if (msg) msg.textContent = "Demonstrativo copiado para a \u00e1rea de transfer\u00eancia."; }
+  function fail(){ if (msg) msg.textContent = "N\u00e3o foi poss\u00edvel copiar automaticamente. Use o bot\u00e3o de imprimir."; }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(ok, fallback);
+  } else { fallback(); }
+  function fallback(){
+    try{
+      var ta = document.createElement("textarea");
+      ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var done = document.execCommand("copy");
+      document.body.removeChild(ta);
+      done ? ok() : fail();
+    }catch(err){ fail(); }
+  }
+}
+
+/* aplica a logo nos elementos da casca, evitando duplicar a imagem no build */
+(function(){
+  var b = document.getElementById("brandLogo"); if (b) b.src = LOGO_LIGHT;
+  var f = document.getElementById("favicon");   if (f) f.href = LOGO_DARK;
+
+  // a data \u00e9 sempre a do dia em que a simula\u00e7\u00e3o est\u00e1 sendo feita
+  S.prop.data = hojeBR();
+  // se o n\u00famero em uso j\u00e1 foi emitido, ou nunca existiu, puxa o pr\u00f3ximo
+  if (!S.prop.numero || jaEmitida(S.prop.numero)) S.prop.numero = proximoNumero();
+})();
+
+render();
+</script>
+</body>
+</html>
