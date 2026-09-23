@@ -40,7 +40,7 @@ const chrome = spawn(browser, ['--headless=new', '--disable-gpu', '--no-first-ru
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 let socket;
 try {
-  const endpoint = await new Promise((resolve, reject) => {
+  const devtoolsUrl = await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(Error('Chrome nao iniciou em 20 segundos')), 20000);
     let stderr = '';
     chrome.on('error', error => { clearTimeout(timer); reject(error); });
@@ -51,7 +51,7 @@ try {
     });
     chrome.on('exit', code => { clearTimeout(timer); reject(Error(`Chrome encerrou: ${code}`)); });
   });
-  socket = new WebSocket(endpoint);
+  socket = new WebSocket(devtoolsUrl);
   await once(socket, 'open');
   let nextId = 0;
   const pending = new Map();
@@ -118,9 +118,6 @@ try {
     console.log(`OK: nove abas, duas modalidades, CSS e imagens em ${entry}`);
   }
   await navigate(origin + '/index.html');
-  await evaluate(`localStorage.setItem('epic_sim_nuvem', JSON.stringify({url:'https://example.invalid',token:'fake-test-token',empresa:'teste',auto:'0',freq:'5'}))`);
-  await navigate(origin + '/index.html?reload=1');
-  assert.equal(await evaluate('S.nuvemCfg.token'), 'fake-test-token');
   await click('[data-tab="parametros"]');
   await input('[data-k="preco"]', '4,5678');
   await evaluate('document.activeElement.blur()');
@@ -140,7 +137,6 @@ try {
   assert.equal(await evaluate('S.forn.B.fobUnit'), '0.4321');
   assert.equal(await evaluate('S.forn.B.nome'), 'Fornecedor de teste');
   assert.equal(await evaluate('S.prop.cliente'), 'Cliente de teste');
-  assert.equal(await evaluate('S.nuvemCfg.token'), 'fake-test-token');
   console.log('OK: edicao numerica, foco do fornecedor e persistencia apos reabrir');
 
   await click('[data-tab="fornecedores"]');

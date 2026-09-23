@@ -328,18 +328,8 @@ function load(k, def){
 function save(){
   try{ localStorage.setItem("epic_params", JSON.stringify(S.p));
        localStorage.setItem("epic_prop", JSON.stringify(S.prop));
-       localStorage.setItem("epic_forn", JSON.stringify(S.forn));
-       localStorage.setItem("epic_sim_nuvem", JSON.stringify(S.nuvemCfg)); }catch(e){}
-  agendarNuvem();
+       localStorage.setItem("epic_forn", JSON.stringify(S.forn)); }catch(e){}
 }
-
-/* ==================================================================
-   BACKUP NA NUVEM (AWS)
-   O app conversa com um endpoint HTTPS do proprio usuario. A chave da
-   AWS fica na Lambda, nunca aqui: um arquivo estatico e legivel por
-   qualquer um que o abra.
-   ================================================================== */
-var NUVEM_DEF = { url:"", token:"", empresa:"epic-simulador", auto:"0", freq:"10" };
 
 /* ==================================================================
    NUMERA\u00c7\u00c3O DAS PROPOSTAS
@@ -401,114 +391,6 @@ function contarDoCliente(nome){
   return n;
 }
 
-function carregarNuvem(){
-  var o = Object.assign({}, NUVEM_DEF);
-  try{
-    var raw = localStorage.getItem("epic_sim_nuvem");
-    if (raw){ var d = JSON.parse(raw); for (var k in NUVEM_DEF) if (d[k] !== undefined) o[k] = d[k]; }
-  }catch(e){}
-  return o;
-}
-
-function pacoteBackup(){
-  return {
-    formato: "epic-simulador-1",
-    empresa: S.nuvemCfg.empresa || "epic-simulador",
-    geradoEm: new Date().toISOString(),
-    resumo: { produto: S.p.produto, ncm: S.p.ncm,
-              fornecedores: ["A","B","C"].map(function(i){ return S.forn[i].nome; }).join(" · ") },
-    dados: { p:S.p, prop:S.prop, forn:S.forn }
-  };
-}
-function assinatura(txt){
-  var h = 5381;
-  for (var i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0;
-  return txt.length + "-" + h.toString(36);
-}
-function nuvemConfigurada(){ return !!(S.nuvemCfg.url && S.nuvemCfg.url.indexOf("http") === 0); }
-function urlNuvem(caminho){ return String(S.nuvemCfg.url || "").replace(/\/+$/, "") + caminho; }
-function cabecalhosNuvem(){
-  return { "Content-Type":"application/json", "X-Epic-Token": S.nuvemCfg.token || "" };
-}
-
-function enviarNuvem(manual){
-  if (!nuvemConfigurada()){
-    if (manual){ S.nuvem.estado = "erro";
-                 S.nuvem.detalhe = "Informe o endereço do endpoint."; render(); }
-    return;
-  }
-  if (S.nuvem.enviando) return;
-  var pacote = pacoteBackup();
-  var corpo = JSON.stringify(pacote);
-  var assin = assinatura(JSON.stringify(pacote.dados));   // sem o geradoEm, que muda sempre
-  if (!manual && assin === S.nuvem.assinatura) return;
-
-  S.nuvem.enviando = true; S.nuvem.estado = "enviando"; S.nuvem.detalhe = "";
-  ultimoEnvio = Date.now();
-  if (manual) render();
-
-  fetch(urlNuvem("/backup"), { method:"POST", headers:cabecalhosNuvem(), body:corpo })
-    .then(function(r){
-      if (!r.ok) throw new Error("HTTP " + r.status + (r.status === 401 ? " — token recusado" : ""));
-      return r.json().catch(function(){ return {}; });
-    })
-    .then(function(resp){
-      S.nuvem.enviando = false; S.nuvem.estado = "ok"; S.nuvem.assinatura = assin;
-      S.nuvem.ultimo = new Date().toLocaleString("pt-BR");
-      S.nuvem.detalhe = resp && resp.arquivo ? resp.arquivo : "";
-      S.nuvem.lista = null; render();
-    })
-    .catch(function(e){
-      S.nuvem.enviando = false; S.nuvem.estado = "erro";
-      S.nuvem.detalhe = String(e.message || e); render();
-    });
-}
-
-function listarNuvem(){
-  if (!nuvemConfigurada()){ S.nuvem.estado = "erro";
-    S.nuvem.detalhe = "Informe o endereço do endpoint."; render(); return; }
-  S.nuvem.estado = "listando"; render();
-  fetch(urlNuvem("/backups?empresa=" + encodeURIComponent(S.nuvemCfg.empresa || "epic-simulador")),
-        { headers:cabecalhosNuvem() })
-    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(function(j){
-      S.nuvem.lista = (j && j.itens) || [];
-      S.nuvem.estado = S.nuvem.lista.length ? "ok" : "vazio"; render();
-    })
-    .catch(function(e){ S.nuvem.estado = "erro"; S.nuvem.detalhe = String(e.message||e); render(); });
-}
-
-function restaurarNuvem(arquivo){
-  if (!confirm("Restaurar esta simulação? Os parâmetros atuais serão substituídos.")) return;
-  S.nuvem.estado = "restaurando"; render();
-  fetch(urlNuvem("/backup?arquivo=" + encodeURIComponent(arquivo)), { headers:cabecalhosNuvem() })
-    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(function(j){
-      var d = (j && j.dados) || j;
-      if (!d || !d.p) throw new Error("arquivo sem parâmetros");
-      S.p = normalizar(Object.assign({}, DEFAULTS, d.p));
-      S.prop = Object.assign({}, PROP_DEF, d.prop || {});
-      if (d.forn){ ["A","B","C"].forEach(function(i){
-        if (d.forn[i]) S.forn[i] = normalizar(Object.assign(fornPadrao("Fornecedor "+i), d.forn[i])); }); }
-      S.nuvem.estado = "ok"; S.nuvem.assinatura = "";
-      S.tab = "resumo"; render(); window.scrollTo(0,0);
-    })
-    .catch(function(e){ S.nuvem.estado = "erro"; S.nuvem.detalhe = String(e.message||e); render(); });
-}
-
-var timerNuvem = null, ultimoEnvio = 0;
-function agendarNuvem(){
-  clearTimeout(timerNuvem);
-  timerNuvem = null;
-  if (num(S.nuvemCfg.auto) !== 1 || !nuvemConfigurada()) return;
-  var minutos = Math.max(1, num(S.nuvemCfg.freq) || 10);
-  var espera = Math.max(8000, minutos * 60000 - (Date.now() - ultimoEnvio));
-  timerNuvem = setTimeout(function(){
-    timerNuvem = null;
-    if (num(S.nuvemCfg.auto) === 1 && nuvemConfigurada()) enviarNuvem(false);
-  }, espera);
-}
-
 /* ============================ NUMEROS ============================ */
 /* Casas decimais de cada campo numerico. Campos com 0 nunca tem parte
    fracionaria, entao ponto e virgula neles sao sempre separador de milhar. */
@@ -519,11 +401,10 @@ var NUMF = { ptax:4, preferencia:0, nVolumes:0, qtdPorVolume:0, pesoPorVolume:3,
   comissao:2, irpjCsll:2, despDedutiveis:2, margemAlvo:2, tradingPct:2, tradingFixo:2,
   icmsImpCO:2, icmsVendaCO:2 };
 
-/* Carregar somente depois de definir os padroes da nuvem e a precisao numerica. */
+/* Carregar somente depois de definir a precisao numerica. */
 var S = { p:normalizar(load("epic_params", DEFAULTS)), prop:load("epic_prop", PROP_DEF),
           forn:loadForn(), fornAtivo:"A",
-  nuvemCfg:carregarNuvem(), num:carregarNum(),
-  nuvem:{ estado:"", detalhe:"", ultimo:"", assinatura:"", enviando:false, lista:null },
+          num:carregarNum(),
           tab:"resumo", modo:"direta", versaoCliente:true };
 
 /* Interpreta o texto digitado sabendo quantas casas decimais o campo aceita. */
@@ -910,61 +791,7 @@ function viewParametros(c){
     + '</div>';
   h += '<div class="actions no-print"><button class="btn ghost" id="btnReset">Restaurar valores padr\u00e3o</button></div>';
   h += '<p class="foot">Os par\u00e2metros ficam salvos neste navegador. Restaurar apaga o que foi digitado.</p>';
-
-  h += sec("7","Backup na nuvem (AWS)","Envia par\u00e2metros, proposta e fornecedores para um endpoint seu na AWS. A credencial da AWS fica na Lambda, nunca aqui: este arquivo \u00e9 leg\u00edvel por qualquer um que o abra.");
-  var SN2 = [["0","Desligado"],["1","Ligado"]];
-  h += '<div class="grid">'
-    + nfld("url","Endere\u00e7o do endpoint","",{wide:true,hint:"URL do API Gateway, sem barra no fim"})
-    + nfld("token","Token de acesso","",{hint:"O mesmo valor configurado na Lambda"})
-    + nfld("empresa","Identificador","",{hint:"Separa as simula\u00e7\u00f5es dentro do bucket"})
-    + '<div class="fld"><label>Backup autom\u00e1tico</label>'
-    + '<select data-k="auto" data-store="nuvem">'
-    + SN2.map(function(o){ return '<option value="'+o[0]+'"'+(String(S.nuvemCfg.auto)===o[0]?' selected':'')+'>'+o[1]+'</option>'; }).join('')
-    + '</select><span class="hint">Envia sozinho ap\u00f3s cada altera\u00e7\u00e3o</span></div>'
-    + nfld("freq","Frequ\u00eancia m\u00ednima","min",{hint:"Intervalo m\u00ednimo entre dois envios"})
-    + '</div>';
-
-  var est = S.nuvem.estado;
-  var rotulo = {enviando:"Enviando\u2026", ok:"Backup enviado", erro:"Falhou", listando:"Consultando\u2026",
-                restaurando:"Restaurando\u2026", vazio:"Nenhum backup encontrado"}[est] || "Nunca enviado";
-  h += '<div class="calcbar" style="border-left-color:'
-    + (est==="erro"?"var(--neg)":est==="ok"?"var(--pos)":"var(--pa)") + '">'
-    + '<span>Situa\u00e7\u00e3o<b class="'+(est==="erro"?"t-neg":est==="ok"?"t-pos":"")+'">'+esc(rotulo)+'</b></span>'
-    + '<span>\u00daltimo envio<b>'+esc(S.nuvem.ultimo||"\u2014")+'</b></span>'
-    + (S.nuvem.detalhe ? '<span>Detalhe<b>'+esc(String(S.nuvem.detalhe).slice(0,60))+'</b></span>' : '')
-    + '</div>';
-  h += '<div class="actions no-print"><button class="btn" data-act="nuvemEnviar">Enviar backup agora</button>'
-    + '<button class="btn alt" data-act="nuvemListar">Ver simula\u00e7\u00f5es salvas</button>'
-    + (S.nuvem.lista ? '<button class="btn ghost" data-act="nuvemFechar">Fechar lista</button>' : '')
-    + '</div>';
-
-  if (S.nuvem.lista){
-    if (!S.nuvem.lista.length){
-      h += '<p class="foot">Nenhuma simula\u00e7\u00e3o salva para este identificador.</p>';
-    } else {
-      h += '<div class="tbl"><div class="h"><span>Arquivo</span><span>Data</span><span>Tamanho</span><span></span></div>';
-      S.nuvem.lista.slice(0,30).forEach(function(b){
-        h += '<div class="row"><span>'+esc(b.arquivo||"")+'</span>'
-          + '<span class="num">'+esc(b.data||"")+'</span>'
-          + '<span class="num">'+(b.tamanho? brl(b.tamanho/1024,0)+" KB" : "\u2014")+'</span>'
-          + '<span class="num"><button class="btn ghost" style="padding:3px 10px;font-size:12px" '
-          + 'data-act="nuvemRestaurar" data-id="'+esc(b.arquivo||"")+'">restaurar</button></span></div>';
-      });
-      h += '</div>';
-    }
-  }
-  h += '<p class="foot">O envio autom\u00e1tico espera a digita\u00e7\u00e3o parar e respeita a frequ\u00eancia m\u00ednima. '
-    + 'Um pacote id\u00eantico ao \u00faltimo n\u00e3o \u00e9 reenviado. O token e o endere\u00e7o n\u00e3o v\u00e3o dentro do backup.</p>';
   return h;
-}
-
-/* Campo ligado \u00e0 configura\u00e7\u00e3o da nuvem. */
-function nfld(chave, rotulo, sufixo, o){
-  o = o || {};
-  return '<div class="fld'+(o.wide?" wide":"")+'"><label>'+esc(rotulo)+'</label>'
-    + '<span class="in"><input data-k="'+chave+'" data-store="nuvem" value="'+esc(S.nuvemCfg[chave]||"")+'" spellcheck="false">'
-    + (sufixo? '<em>'+esc(sufixo)+'</em>' : '') + '</span>'
-    + (o.hint? '<span class="hint">'+esc(o.hint)+'</span>' : '') + '</div>';
 }
 
 function viewNacionalizacao(c){
@@ -1478,7 +1305,6 @@ function viewDemonstrativo(c){
 function storeOf(nome){
   if (nome === "prop") return S.prop;
   if (nome === "forn") return S.forn[S.fornAtivo];
-  if (nome === "nuvem") return S.nuvemCfg;
   return S.p;
 }
 
@@ -1731,10 +1557,6 @@ document.addEventListener("click", function(e){
   if (t.hasAttribute("data-mode")){ S.modo = t.getAttribute("data-mode"); render(); return; }
   if (t.hasAttribute("data-ver")){ S.versaoCliente = (t.getAttribute("data-ver")==="cliente"); render(); return; }
   if (t.hasAttribute("data-forn")){ S.fornAtivo = t.getAttribute("data-forn"); render(); return; }
-  if (t.getAttribute("data-act") === "nuvemEnviar"){ enviarNuvem(true); return; }
-  if (t.getAttribute("data-act") === "nuvemListar"){ listarNuvem(); return; }
-  if (t.getAttribute("data-act") === "nuvemFechar"){ S.nuvem.lista = null; render(); return; }
-  if (t.getAttribute("data-act") === "nuvemRestaurar"){ restaurarNuvem(t.getAttribute("data-id")); return; }
   if (t.getAttribute("data-act") === "fornCopiar"){
     var alvo = S.forn[S.fornAtivo];
     for (var i = 0; i < FORN_KEYS.length; i++){

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Gera dist/index.html: um único arquivo com CSS, JavaScript e imagens embutidos,
-pronto para subir em S3, CloudFront, Amplify ou qualquer hospedagem estática.
+pronto para qualquer hospedagem estática.
 
 Uso:  python3 build.py
 """
